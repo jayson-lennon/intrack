@@ -1,17 +1,24 @@
 // (1) issue list
 //
+// priority    created    status    title
+// ..          ..         ..        ..
+// ..          ..         ..        ..
+// ..          ..         ..        ..
+// ..          ..         ..        ..
 //
 //
 //
 //
 //
+// / Filter >
+//
+// alt-c -> edit columns
+// shift-h -> change sort column left
+// shift-l -> change sort column right
+// shift-j -> sort desc
+// shift-k -> sort asc
 //
 //
-//
-//
-//
-//
-// / Search >
 
 // use error_stack::{Report, ResultExt};
 // use skim::prelude::*;
