@@ -1,0 +1,29 @@
+[package]
+name = "intrack"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "intrack"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4.5.53", features = ["derive", "env"] }
+clap-verbosity-flag = "3.0.4"
+derive_more = { version = "2.1.0", features = ["full"] }
+dialoguer = "0.12.0"
+dotenvy = { version = "0.15.7", features = ["clap"] }
+error-stack = "0.6.0"
+jiff = { version = "0.2.16", features = ["serde"] }
+owo-colors = "4.2.3"
+regex = "1.12.2"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
+serde_valid = "2.0.0"
+serde_yaml = "0.9.34"
+skim = "0.20.5"
+strum = { version = "0.27.2", features = ["derive"] }
+toml = "0.9.8"
+tracing = "0.1.43"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+wherror = "2.3.1"
