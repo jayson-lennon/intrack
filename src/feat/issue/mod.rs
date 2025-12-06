@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 mod comment;
 mod priority;
-mod skim_display;
 mod status;
 mod template;
 
