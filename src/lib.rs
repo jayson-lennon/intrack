@@ -1,3 +1,6 @@
+mod app;
+pub mod common;
 pub mod feat;
 pub mod init;
-pub mod state;
+
+pub use app::{App, AppConfig, AppError, AppNewArgs};

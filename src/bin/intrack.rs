@@ -1,19 +1,13 @@
+use std::time::Duration;
+
 use clap::Parser;
 use dotenvy::dotenv;
 use error_stack::{Report, ResultExt};
 use intrack::{
-    feat::{cli::CliArgs, issues::Issues},
-    state::AppState,
+    common::report::{Missing, Suggestion},
+    feat::{cli::CliArgs, issues::Issues, tui::TuiState},
+    App, AppConfig, AppError, AppNewArgs,
 };
-use wherror::Error;
-
-/// A simple application error type used throughout the intrack application.
-///
-/// This error type is used as the context for all errors that occur during
-/// application execution, providing a unified error reporting mechanism.
-#[derive(Debug, Error)]
-#[error(debug)]
-pub struct AppError;
 
 /// Executes the intrack application entry point.
 ///
@@ -29,7 +23,10 @@ pub struct AppError;
 /// - Creating the event log fails
 /// - Loading issues from the event log file fails
 ///
-pub fn main() -> Result<(), Report<AppError>> {
+#[tokio::main]
+pub async fn main() -> Result<(), Report<AppError>> {
+    intrack::init::error_report::init();
+
     let args = CliArgs::parse();
 
     intrack::init::trace::init(args.verbosity, args.tracing_log.clone())
@@ -50,14 +47,17 @@ pub fn main() -> Result<(), Report<AppError>> {
         .change_context(AppError)
         .attach("failed to create event log")?;
 
-    let state = AppState {
-        issues: {
+    let args = AppNewArgs::builder()
+        .issues(
             Issues::from_jsonl_file(&args.event_log)
                 .change_context(AppError)
-                .attach("failed to load issues")?
-        },
-        args,
-    };
+                .attach("failed to load issues")?,
+        )
+        .args(args)
+        .build();
+
+    let mut app = App::new(args);
+    app.run().await?;
 
     Ok(())
 }
