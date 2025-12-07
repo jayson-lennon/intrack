@@ -1,14 +1,15 @@
+use smart_default::SmartDefault;
+
 use crate::feat::{
     tui::{Focus, Page},
     tui_issue_table::IssueTableState,
 };
 
 /// State of the TUI.
-#[derive(Debug, Default)]
+#[derive(Debug, SmartDefault)]
 pub struct TuiState {
     page: Page,
     focus: Focus,
-
     pub issue_table: IssueTableState,
 }
 

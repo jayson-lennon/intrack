@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod external_editor;
 pub mod issue;
 pub mod issues;
 pub mod tui;

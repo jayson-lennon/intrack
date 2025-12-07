@@ -16,6 +16,16 @@ impl IssueListPageInput for App {
             Focus::IssueList => {
                 if let (Some(key), mods) = (event.keypress(), event.modifiers()) {
                     match (key, mods) {
+                        // Edit columns
+                        (KeyCode::Char('C' | 'c'), Some(mods))
+                            if mods.contains(KeyModifiers::SHIFT) =>
+                        {
+                            self.external_editor.edit("testing", "", |app, response| {
+                                app.config.tick_rate = 9.9;
+                                tracing::error!(response = response, "got response");
+                            });
+                            return EventPropagation::Stop;
+                        }
                         // Sort descending
                         (KeyCode::Char('J' | 'j'), Some(mods))
                             if mods.contains(KeyModifiers::SHIFT) =>

@@ -129,27 +129,27 @@ impl Tui {
                   maybe_event = crossterm_event => {
                     match maybe_event {
                       Some(Ok(evt)) => {
-                        match evt {
-                          CrosstermEvent::Key(key) => {
-                            if key.kind == KeyEventKind::Press {
-                              event_tx.send(Event::Key(key)).change_context(TuiError).attach("failed to forward Key event")?;
-                            }
-                          },
-                          CrosstermEvent::Mouse(mouse) => {
-                            event_tx.send(Event::Mouse(mouse)).change_context(TuiError).attach("failed to forward Mouse event")?;
-                          },
-                          CrosstermEvent::Resize(x, y) => {
-                            event_tx.send(Event::Resize(x, y)).change_context(TuiError).attach("failed to forward Resize event")?;
-                          },
-                          CrosstermEvent::FocusLost => {
-                            event_tx.send(Event::FocusLost).change_context(TuiError).attach("failed to forward FocusLost event")?;
-                          },
-                          CrosstermEvent::FocusGained => {
-                            event_tx.send(Event::FocusGained).change_context(TuiError).attach("failed to forward FocusGained event")?;
-                          },
-                          CrosstermEvent::Paste(s) => {
-                            event_tx.send(Event::Paste(s)).change_context(TuiError).attach("failed to forward Paste event")?;
-                          },
+                            match evt {
+                            CrosstermEvent::Key(key) => {
+                                if key.kind == KeyEventKind::Press {
+                                event_tx.send(Event::Key(key)).change_context(TuiError).attach("failed to forward Key event")?;
+                                }
+                            },
+                            CrosstermEvent::Mouse(mouse) => {
+                                event_tx.send(Event::Mouse(mouse)).change_context(TuiError).attach("failed to forward Mouse event")?;
+                            },
+                            CrosstermEvent::Resize(x, y) => {
+                                event_tx.send(Event::Resize(x, y)).change_context(TuiError).attach("failed to forward Resize event")?;
+                            },
+                            CrosstermEvent::FocusLost => {
+                                event_tx.send(Event::FocusLost).change_context(TuiError).attach("failed to forward FocusLost event")?;
+                            },
+                            CrosstermEvent::FocusGained => {
+                                event_tx.send(Event::FocusGained).change_context(TuiError).attach("failed to forward FocusGained event")?;
+                            },
+                            CrosstermEvent::Paste(s) => {
+                                event_tx.send(Event::Paste(s)).change_context(TuiError).attach("failed to forward Paste event")?;
+                            },
                         }
                       }
                       Some(Err(_)) => {
@@ -182,14 +182,13 @@ impl Tui {
                 self.task.abort();
             }
             if counter > 100 {
-                tracing::error!("Failed to abort task in 100 milliseconds for unknown reason");
                 break;
             }
         }
         Ok(())
     }
 
-    pub fn enter(&mut self) -> Result<(), Report<TuiError>> {
+    pub fn enter_raw_mode(&mut self) -> Result<(), Report<TuiError>> {
         crossterm::terminal::enable_raw_mode().change_context(TuiError)?;
         crossterm::execute!(std::io::stderr(), EnterAlternateScreen, cursor::Hide)
             .change_context(TuiError)?;
@@ -200,11 +199,10 @@ impl Tui {
             crossterm::execute!(std::io::stderr(), EnableBracketedPaste)
                 .change_context(TuiError)?;
         }
-        self.start()
+        Ok(())
     }
 
-    pub fn exit(&mut self) -> Result<(), Report<TuiError>> {
-        self.stop()?;
+    pub fn exit_raw_mode(&mut self) -> Result<(), Report<TuiError>> {
         if crossterm::terminal::is_raw_mode_enabled().change_context(TuiError)? {
             self.flush().change_context(TuiError)?;
             if self.paste {
@@ -227,7 +225,7 @@ impl Tui {
     }
 
     pub fn suspend(&mut self) -> Result<(), Report<TuiError>> {
-        self.exit().change_context(TuiError)?;
+        self.exit_raw_mode().change_context(TuiError)?;
         // #[cfg(not(windows))]
         // signal_hook::low_level::raise(signal_hook::consts::signal::SIGTSTP)
         //     .change_context(TuiError)?;
@@ -235,7 +233,7 @@ impl Tui {
     }
 
     pub fn resume(&mut self) -> Result<(), Report<TuiError>> {
-        self.enter().change_context(TuiError)?;
+        self.enter_raw_mode().change_context(TuiError)?;
         Ok(())
     }
 
@@ -260,6 +258,7 @@ impl DerefMut for Tui {
 
 impl Drop for Tui {
     fn drop(&mut self) {
-        self.exit().expect("failure while exiting TUI backend");
+        self.exit_raw_mode()
+            .expect("failure while exiting TUI backend");
     }
 }
