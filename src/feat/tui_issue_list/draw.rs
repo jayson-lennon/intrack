@@ -1,8 +1,8 @@
-use crate::App;
+use crate::{App, feat::tui_widget::InputBox};
 
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, List, ListItem, Paragraph},
 };
 
 pub trait IssueListDraw {
@@ -15,6 +15,11 @@ impl IssueListDraw for &mut App {
         let inner_area = block.inner(area);
         block.render(area, buf);
 
+        let input_box = InputBox::default().with_prefix(vec![
+            Span::from("/").style(Style::default().fg(Color::Red)),
+            Span::from(" Query >> "),
+        ]);
+
         // Render any arbitrary widgets within inner_area
         // Example: multiple independent widgets
         let inner_chunks = Layout::default()
@@ -25,9 +30,24 @@ impl IssueListDraw for &mut App {
                 Constraint::Length(1),
             ])
             .split(inner_area);
+        let item = ListItem::new("hi");
+        let items: Vec<_> = (1..=1).map(|i| item.clone()).collect();
+        let list = List::new(items)
+            .block(Block::bordered().title("List"))
+            .highlight_style(Style::new().reversed())
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true);
 
-        Paragraph::new("Issue 1: Open...").render(inner_chunks[0], buf);
-        Paragraph::new("Issue 2: In progress...").render(inner_chunks[1], buf);
-        Paragraph::new("Issue 3: Closed...").render(inner_chunks[2], buf);
+        let state = &mut self.tuistate.issue_list.list;
+        *state.offset_mut() = 1; // display the second item and onwards
+        state.select(Some(3)); // select the forth item (0-indexed)
+        StatefulWidget::render(list, area, buf, state);
+
+        StatefulWidget::render(
+            input_box,
+            inner_chunks[1],
+            buf,
+            &mut self.tuistate.issue_list.filter,
+        );
     }
 }

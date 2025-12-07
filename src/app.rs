@@ -1,10 +1,7 @@
 mod config;
 mod dependencies;
-mod tui_draw;
-mod tui_input;
 
 pub use config::AppConfig;
-pub use tui_input::EventHandlerError;
 
 use bon::Builder;
 use error_stack::{Report, ResultExt};
@@ -22,6 +19,10 @@ use crate::feat::{
 #[derive(Debug, Error)]
 #[error(debug)]
 pub struct AppError;
+
+#[derive(Debug, Error)]
+#[error(debug)]
+pub struct EventHandlerError;
 
 #[derive(Debug)]
 pub struct App {
@@ -99,6 +100,28 @@ impl App {
     fn on_tick(&mut self) {}
 
     fn draw(&mut self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
+        use crate::feat::tui::Page;
+
+        let area = frame.area();
+        let buf = frame.buffer_mut();
+        match self.tuistate.page() {
+            Page::IssueList => IssueListDraw::render(self, area, buf),
+        }
+    }
+
+    pub fn handle_event(&mut self, event: &Event) -> Result<(), Report<EventHandlerError>> {
+        use crate::feat::tui::{Focus, KeyCode, Page};
+        use crate::feat::tui_issue_list::IssueListPageInput;
+
+        match event {
+            Event::Key(key) if key.code == KeyCode::Char('q') => self.should_quit = true,
+            _ => (),
+        }
+
+        match self.tuistate.page() {
+            Page::IssueList => IssueListPageInput::handle(self, event)?,
+        };
+
+        Ok(())
     }
 }

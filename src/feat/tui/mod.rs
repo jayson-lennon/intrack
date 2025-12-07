@@ -1,8 +1,45 @@
+mod event;
 mod state;
 mod wrapper;
 
+pub use event::{Event, EventExt, KeyCode, KeyEvent, KeyEventKind};
 pub use state::TuiState;
-pub use wrapper::{Event, Tui, TuiError};
+pub use wrapper::{Tui, TuiError};
+
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
+pub enum Page {
+    #[default]
+    IssueList,
+}
+
+impl Into<usize> for Page {
+    fn into(self) -> usize {
+        match self {
+            Self::IssueList => 0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
+pub enum Focus {
+    #[default]
+    IssueList,
+    IssueListFilter,
+}
+
+/// Return type from custom widgets during their input handling phase.
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
+pub enum EventPropagation {
+    /// The event was handled by the widget & the widget state has changed (cursor moved, text was
+    /// entered, etc).
+    ///
+    /// Further propagation of this event should be stopped.
+    Stop,
+
+    /// The event was not handled by the widget. It should be propagated further.
+    #[default]
+    Continue,
+}
 // (1) issue list
 //
 // priority    created    status    title

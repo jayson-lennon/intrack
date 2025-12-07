@@ -4,9 +4,9 @@ use clap::Parser;
 use dotenvy::dotenv;
 use error_stack::{Report, ResultExt};
 use intrack::{
+    App, AppConfig, AppError, AppNewArgs,
     common::report::{Missing, Suggestion},
     feat::{cli::CliArgs, issues::Issues, tui::TuiState},
-    App, AppConfig, AppError, AppNewArgs,
 };
 
 /// Executes the intrack application entry point.
