@@ -4,7 +4,7 @@ pub type KeyModifiers = crossterm::event::KeyModifiers;
 pub type KeyCode = crossterm::event::KeyCode;
 pub type KeyEventKind = crossterm::event::KeyEventKind;
 
-/// Helper methods on [`Event`](crate::feat::tui::Event).
+/// Helper methods on [`Event`].
 pub trait EventExt {
     /// Returns `true` if the event is a key press for the specified character.
     fn is_char(&self, ch: char) -> bool;

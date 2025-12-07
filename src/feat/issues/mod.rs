@@ -10,10 +10,19 @@ mod event;
 
 pub use event::IssueEvent;
 
+/// Error type for issues-related event operations.
+///
+/// This error is returned when operations on the event log fail,
+/// such as when loading from or saving to files.
 #[derive(Debug, Error)]
 #[error(debug)]
 pub struct IssuesEventError;
 
+/// A projected state representing all issues and their associated comments.
+///
+/// This struct maintains a read-optimized view of the issues system by applying
+/// events from an event log. It tracks all created issues in `issues` and their
+/// corresponding comments in `comments`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Issues {
     issues: HashMap<IssueId, Issue>,
@@ -21,10 +30,17 @@ pub struct Issues {
 }
 
 impl Issues {
+    /// Returns an iterator over all issues in the collection.
+    ///
+    /// The iterator yields references to `Issue` values in an arbitrary order.
     pub fn iter_issues(&self) -> impl Iterator<Item = &Issue> {
         self.issues.values()
     }
 
+    /// Returns an iterator over all comments grouped by their parent issue.
+    ///
+    /// The iterator yields tuples of `(IssueId, &[Comment])` where each issue ID
+    /// maps to all comments associated with that issue.
     pub fn iter_comments(&self) -> impl Iterator<Item = (&IssueId, &Vec<Comment>)> {
         self.comments.iter()
     }
@@ -69,6 +85,15 @@ impl Issues {
     }
 
     /// Loads Issues state from a JSONL file where each line is an `IssueEvent`.
+    ///
+    /// Reads a JSONL (JSON Lines) file where each line contains a serialized
+    /// `IssueEvent`. The events are applied in order to reconstruct the projected
+    /// state. Empty lines are ignored.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read, if JSON deserialization fails
+    /// for any line, or if the file format is invalid.
     pub fn from_jsonl_file<P>(path: P) -> Result<Self, Report<IssuesEventError>>
     where
         P: AsRef<Path>,
@@ -87,7 +112,7 @@ impl Issues {
             let event = serde_json::from_str::<IssueEvent>(line)
                 .change_context(IssuesEventError)
                 .attach_with(|| format!("failed to deserialize event at line {}", idx + 1))
-                .attach_with(|| format!("content: {}", line))?;
+                .attach_with(|| format!("content: {line}"))?;
             events.push(event);
         }
 
@@ -95,10 +120,19 @@ impl Issues {
     }
 
     /// Appends a new event to the event log file and applies it to the projected state.
+    ///
+    /// Serializes the event to JSON and appends it as a single line to the event log.
+    /// After successfully writing to the file, the event is applied to update the
+    /// current state in memory. The file is created if it doesn't exist.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be opened for appending, if the event
+    /// cannot be serialized to JSON, or if writing to the file fails.
     pub fn append_to_log<P>(
         &mut self,
         path: P,
-        event: IssueEvent,
+        event: &IssueEvent,
     ) -> Result<(), Report<IssuesEventError>>
     where
         P: AsRef<Path>,

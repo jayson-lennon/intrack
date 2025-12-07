@@ -6,10 +6,19 @@ use wherror::Error;
 
 use crate::feat::tui::{Event, EventExt, EventPropagation, KeyCode};
 
+/// Error type for input box operations.
+///
+/// This error is returned when input box operations fail. It uses debug formatting
+/// to provide detailed error information for debugging purposes.
 #[derive(Debug, Error)]
 #[error(debug)]
 pub struct InputBoxError;
 
+/// State container for the input box widget.
+///
+/// This struct holds the current text content, cursor position, and focus state
+/// of an input box. It manages the internal state required for text input and
+/// cursor manipulation.
 #[derive(Clone, Debug, Default)]
 pub struct InputBoxState {
     text: Rope,
@@ -18,6 +27,15 @@ pub struct InputBoxState {
 }
 
 impl InputBoxState {
+    /// Handles keyboard input events for the input box.
+    ///
+    /// Processes character input, backspace, and cursor movement keys.
+    /// Returns `EventPropagation::Stop` when the event is handled by this input box,
+    /// or `EventPropagation::Continue` when the event should be passed to other handlers.
+    ///
+    /// - Character input inserts the character at the cursor position and advances the cursor
+    /// - Backspace deletes the character before the cursor (if any)
+    /// - Left/Right arrows move the cursor within the text bounds
     pub fn handle_input(&mut self, event: &Event) -> EventPropagation {
         if let Some(key) = event.keypress() {
             match key {
@@ -51,32 +69,72 @@ impl InputBoxState {
         EventPropagation::Continue
     }
 
+    /// Sets the focus state of the input box.
+    ///
+    /// When focused, the input box will respond to keyboard input and display
+    /// visual focus indicators. When not focused, it ignores keyboard input.
     pub fn set_focused(&mut self, focused: bool) {
         self.is_focused = focused;
     }
 
-    pub fn text<'a>(&'a self) -> Cow<'a, str> {
+    /// Returns the current text content of the input box.
+    ///
+    /// Returns the text as a `Cow` to allow zero-copy conversions while also
+    /// supporting owned string operations when needed.
+    pub fn text(&self) -> Cow<'_, str> {
         self.text.line(0).into()
     }
 }
 
+/// A stateful text input widget for TUI applications.
+///
+/// This widget provides a text input field that can display a prefix (such as a prompt
+/// or indicator) followed by editable text. It renders with visual feedback for focus
+/// state and cursor position.
+///
+/// # Examples
+///
+/// ```
+/// use ratatui::widgets::StatefulWidget;
+/// use ratatui::prelude::*;
+/// # use intrack::feat::tui_widget::InputBox;
+/// # use intrack::feat::tui_widget::InputBoxState;
+/// #
+/// # fn example() {
+/// let mut state = InputBoxState::default();
+/// let widget = InputBox::new()
+///     .with_prefix(vec![Span::raw("> ")]);
+/// # }
+/// ```
 #[derive(Clone, Debug, Default)]
 pub struct InputBox<'a> {
     pub prefix: Vec<Span<'a>>,
 }
 
 impl<'a> InputBox<'a> {
+    /// Creates a new empty input box with no prefix.
     pub fn new() -> Self {
         Self { prefix: vec![] }
     }
 
+    /// Sets the prefix for this input box.
+    ///
+    /// The prefix is displayed before the editable text area and can contain
+    /// styled text (such as prompts or indicators).
+    #[must_use]
     pub fn with_prefix(mut self, prefix: Vec<Span<'a>>) -> Self {
         self.prefix = prefix;
         self
     }
 }
 
-impl<'a> StatefulWidget for InputBox<'a> {
+/// Renders the input box widget with the current state.
+///
+/// This implementation handles rendering the prefix, text content, and cursor
+/// with appropriate styling based on the focus state. The cursor is displayed
+/// as a reversed character when focused, and the entire input box is highlighted
+/// when focused.
+impl StatefulWidget for InputBox<'_> {
     type State = InputBoxState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
@@ -103,7 +161,10 @@ impl<'a> StatefulWidget for InputBox<'a> {
     }
 }
 
-/// Optionally applies highlight to the query box when it's in focus.
+/// Applies visual styling based on the focus state.
+///
+/// When focused, the input box uses a yellow background with black text
+/// for clear visual feedback. When not focused, no special styling is applied.
 fn apply_focus_highlight(is_focused: bool) -> Style {
     if is_focused {
         Style::default().fg(Color::Black).bg(Color::Yellow)
@@ -112,12 +173,22 @@ fn apply_focus_highlight(is_focused: bool) -> Style {
     }
 }
 
-fn format_text_with_cursor<'a>(
-    text: &'a Rope,
+/// Formats text with a visible cursor position.
+///
+/// This function takes text and a cursor position, then returns a vector of styled spans
+/// representing the text with the cursor visually embedded. When the cursor is at the end
+/// of the text or when the text is empty, it appends a styled space to represent the cursor.
+/// When the cursor is in the middle, it splits the text and applies the cursor style to
+/// the character at the cursor position.
+///
+/// The cursor is only visually styled when `is_focused` is true. When not focused,
+/// the cursor style is neutral.
+fn format_text_with_cursor(
+    text: &Rope,
     cursor_pos: usize,
     cursor_style: Style,
     is_focused: bool,
-) -> Vec<Span<'a>> {
+) -> Vec<Span<'_>> {
     let mut cursor_style = cursor_style;
     // Clamp the cursor position to be within the valid range of the text's character length.
     let cursor_pos = cursor_pos.min(text.len_chars());
@@ -138,7 +209,7 @@ fn format_text_with_cursor<'a>(
     else {
         // Slice the text into its three components.
         let text_before_cursor = text.slice(..cursor_pos);
-        let text_at_cursor = text.slice(cursor_pos..cursor_pos + 1);
+        let text_at_cursor = text.slice(cursor_pos..=cursor_pos);
         let text_after_cursor = text.slice(cursor_pos + 1..);
 
         // Create styled spans for each component.

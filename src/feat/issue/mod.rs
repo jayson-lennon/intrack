@@ -15,11 +15,22 @@ pub use priority::{Priority, PriorityParseError};
 pub use status::{Status, StatusParseError};
 pub use template::{IssueItemTemplate, IssueTemplateError};
 
+/// A type alias for issue identifiers.
 pub type IssueId = u64;
 
+/// Regex pattern for extracting YAML frontmatter and comment content from issue templates.
+///
+/// The pattern matches the format:
+/// ```plain
+/// ---
+/// <yaml content>
+/// ---
+/// <comment content>
+/// ```
 static RE_ISSUE_EXTRACT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?s)^---\n+(?P<yaml>.*)\n+---(?P<comment>.*)$"#).unwrap());
 
+/// Represents a project issue with metadata and custom fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Issue {
     pub id: IssueId,
@@ -32,8 +43,22 @@ pub struct Issue {
 }
 
 impl Issue {
-    /// Generates pretty-printed JSON template for new issue.
-    pub fn new(new_id: IssueId) -> Result<Option<(Issue, Comment)>, Report<IssueTemplateError>> {
+    /// Creates a new issue by opening an editor with a YAML template.
+    ///
+    /// This method presents the user with an editor containing a template for the new issue.
+    /// The user can edit the YAML frontmatter and add a comment. If the user saves and closes
+    /// the editor, a new issue and comment are created and returned. If the user cancels without
+    /// saving, `None` is returned.
+    ///
+    /// # Errors
+    ///
+    /// This function returns `Err(Report<IssueTemplateError>)` if:
+    /// - The external editor fails to launch or process the template.
+    /// - The edited content cannot be parsed to extract YAML frontmatter and comment.
+    /// - The YAML frontmatter fails to deserialize into an `IssueItemTemplate`.
+    pub fn new_interactive(
+        new_id: IssueId,
+    ) -> Result<Option<(Issue, Comment)>, Report<IssueTemplateError>> {
         let template = r#"---
 title: ENTER ISSUE TITLE HERE
 created_by: YOUR.EMAIL@EXAMPLE.COM
@@ -87,6 +112,19 @@ custom:
         Ok(Some((issue, comment)))
     }
 
+    /// Extracts YAML frontmatter and comment content from an issue template string.
+    ///
+    /// Parses the template format to separate the YAML frontmatter (between the first `---` delimiters)
+    /// from the comment content (after the second `---` delimiter).
+    ///
+    /// Returns the YAML content and comment content as separate string slices.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(Report<IssueTemplateError>)` if:
+    /// - The input string does not match the expected regex pattern.
+    /// - The YAML frontmatter capture group is missing.
+    /// - The comment capture group is missing.
     fn extract_issue_parts(issue: &str) -> Result<(&str, &str), Report<IssueTemplateError>> {
         let caps = &(*RE_ISSUE_EXTRACT)
             .captures(issue.trim())
@@ -184,8 +222,7 @@ Line 2."#;
         for input in inputs {
             assert!(
                 Issue::extract_issue_parts(input).is_err(),
-                "Expected error for input: {:?}",
-                input
+                "Expected error for input: {input:?}"
             );
         }
     }

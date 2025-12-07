@@ -1,12 +1,9 @@
-use std::time::Duration;
-
 use clap::Parser;
 use dotenvy::dotenv;
 use error_stack::{Report, ResultExt};
 use intrack::{
-    App, AppConfig, AppError, AppNewArgs,
-    common::report::{Missing, Suggestion},
-    feat::{cli::CliArgs, issues::Issues, tui::TuiState},
+    App, AppError, AppNewArgs,
+    feat::{cli::CliArgs, issues::Issues},
 };
 
 /// Executes the intrack application entry point.
