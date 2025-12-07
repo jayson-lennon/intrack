@@ -79,7 +79,9 @@ impl IssueTableDraw for &mut App {
                             let content: Cow<'_, str> = match col {
                                 Column::Id => issue.id.to_string().into(),
                                 Column::Title => issue.title.as_str().into(),
-                                Column::Created => format!("{}", issue.created).into(),
+                                Column::Created => {
+                                    issue.created.strftime("%FT%TZ").to_string().into()
+                                }
                                 Column::Status => format!("{:?}", issue.status).into(),
                                 Column::Priority => format!("{:?}", issue.priority).into(),
                                 Column::CreatedBy => issue.created_by.as_str().into(),
