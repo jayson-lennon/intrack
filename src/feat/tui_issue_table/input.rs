@@ -14,17 +14,17 @@ impl IssueListPageInput for App {
                 if let Some(key) = event.keypress() {
                     match key {
                         KeyCode::Up => {
-                            self.tuistate.issue_list.select_previous_list_item();
+                            self.tuistate.issue_table.cursor_previous();
                             EventPropagation::Stop
                         }
                         KeyCode::Down => {
-                            self.tuistate.issue_list.select_next_list_item();
+                            self.tuistate.issue_table.cursor_next();
                             EventPropagation::Stop
                         }
                         KeyCode::Char('/') => {
                             if event.is_char('/') {
                                 self.tuistate.set_focus(Focus::IssueListFilter);
-                                self.tuistate.issue_list.filter_mut().set_focused(true);
+                                self.tuistate.issue_table.filter_mut().set_focused(true);
                                 EventPropagation::Stop
                             } else {
                                 EventPropagation::Continue
@@ -41,10 +41,10 @@ impl IssueListPageInput for App {
                     && key.code == KeyCode::Esc
                 {
                     self.tuistate.set_focus(Focus::IssueList);
-                    self.tuistate.issue_list.filter_mut().set_focused(false);
+                    self.tuistate.issue_table.filter_mut().set_focused(false);
                     EventPropagation::Stop
                 } else {
-                    self.tuistate.issue_list.filter_mut().handle_input(event)
+                    self.tuistate.issue_table.filter_mut().handle_input(event)
                 }
             }
             _ => {

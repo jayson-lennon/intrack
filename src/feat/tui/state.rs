@@ -1,6 +1,6 @@
 use crate::feat::{
     tui::{Focus, Page},
-    tui_issue_list::IssueListState,
+    tui_issue_table::IssueTableState,
 };
 
 /// State of the TUI.
@@ -9,7 +9,7 @@ pub struct TuiState {
     page: Page,
     focus: Focus,
 
-    pub issue_list: IssueListState,
+    pub issue_table: IssueTableState,
 }
 
 impl TuiState {

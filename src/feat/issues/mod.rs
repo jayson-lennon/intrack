@@ -21,6 +21,14 @@ pub struct Issues {
 }
 
 impl Issues {
+    pub fn iter_issues(&self) -> impl Iterator<Item = &Issue> {
+        self.issues.values()
+    }
+
+    pub fn iter_comments(&self) -> impl Iterator<Item = (&IssueId, &Vec<Comment>)> {
+        self.comments.iter()
+    }
+
     /// Applies a single event to update the projected state.
     pub fn apply_event(&mut self, event: IssueEvent) {
         match event {

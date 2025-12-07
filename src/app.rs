@@ -1,5 +1,4 @@
 mod config;
-mod dependencies;
 
 pub use config::AppConfig;
 
@@ -12,7 +11,7 @@ use crate::feat::{
     cli::CliArgs,
     issues::Issues,
     tui::{Event, Tui, TuiState},
-    tui_issue_list::IssueListDraw,
+    tui_issue_table::IssueTableDraw,
 };
 
 /// Top-level error type.
@@ -105,17 +104,17 @@ impl App {
         let area = frame.area();
         let buf = frame.buffer_mut();
         match self.tuistate.page() {
-            Page::IssueList => IssueListDraw::render(self, area, buf),
+            Page::IssueTable => IssueTableDraw::render(self, area, buf),
         }
     }
 
     pub fn handle_event(&mut self, event: &Event) -> Result<(), Report<EventHandlerError>> {
         use crate::feat::tui::{EventPropagation, KeyCode, Page};
-        use crate::feat::tui_issue_list::IssueListPageInput;
+        use crate::feat::tui_issue_table::IssueListPageInput;
 
         // Match only on the page. The page input handler will manage the focus.
         let propagation = match self.tuistate.page() {
-            Page::IssueList => IssueListPageInput::handle(self, event),
+            Page::IssueTable => IssueListPageInput::handle(self, event),
         };
 
         match propagation {

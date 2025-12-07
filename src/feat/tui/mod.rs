@@ -9,7 +9,7 @@ pub use wrapper::{Tui, TuiError};
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
 pub enum Page {
     #[default]
-    IssueList,
+    IssueTable,
 }
 
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]

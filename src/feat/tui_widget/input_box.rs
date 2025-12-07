@@ -54,6 +54,10 @@ impl InputBoxState {
     pub fn set_focused(&mut self, focused: bool) {
         self.is_focused = focused;
     }
+
+    pub fn text<'a>(&'a self) -> Cow<'a, str> {
+        self.text.line(0).into()
+    }
 }
 
 #[derive(Clone, Debug, Default)]
