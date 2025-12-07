@@ -33,7 +33,7 @@ impl IssueTableDraw for &mut App {
         ]);
 
         // Compute filtered issues based on filter text
-        let filter_text = self.tuistate.issue_table.filter.text().to_lowercase();
+        let filter_text = self.tuistate.issue_table.filter().text().to_lowercase();
         let filtered_issues: Vec<&crate::feat::issue::Issue> = self
             .issues
             .iter_issues()
@@ -121,7 +121,7 @@ impl IssueTableDraw for &mut App {
             input_box,
             filter_area,
             buf,
-            &mut self.tuistate.issue_table.filter,
+            self.tuistate.issue_table.filter_mut(),
         );
     }
 }
