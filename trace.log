@@ -1,0 +1,4 @@
+[2m2025-12-07T17:55:39.710798Z[0m [35mTRACE[0m [2mintrack::feat::tui_issue_table::input[0m[2m:[0m [2msrc/feat/tui_issue_table/input.rs[0m[2m:[0m[2m32:[0m [3mmods[0m[2m=[0mKeyModifiers(0x0)
+[2m2025-12-07T17:55:51.349458Z[0m [35mTRACE[0m [2mintrack::feat::tui_issue_table::input[0m[2m:[0m [2msrc/feat/tui_issue_table/input.rs[0m[2m:[0m[2m32:[0m [3mmods[0m[2m=[0mKeyModifiers(CONTROL)
+[2m2025-12-07T17:55:58.615990Z[0m [35mTRACE[0m [2mintrack::feat::tui_issue_table::input[0m[2m:[0m [2msrc/feat/tui_issue_table/input.rs[0m[2m:[0m[2m32:[0m [3mmods[0m[2m=[0mKeyModifiers(0x0)
+[2m2025-12-07T17:56:14.063161Z[0m [35mTRACE[0m [2mintrack::feat::tui_issue_table::input[0m[2m:[0m [2msrc/feat/tui_issue_table/input.rs[0m[2m:[0m[2m32:[0m [3mmods[0m[2m=[0mKeyModifiers(SHIFT)

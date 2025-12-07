@@ -2,7 +2,10 @@ use std::borrow::Cow;
 
 use crate::{
     App,
-    feat::{tui_issue_table::Column, tui_widget::InputBox},
+    feat::{
+        tui_issue_table::{Column, SortDirection},
+        tui_widget::InputBox,
+    },
 };
 
 use ratatui::{
@@ -33,8 +36,13 @@ impl IssueTableDraw for &mut App {
         ]);
 
         // Compute filtered issues based on filter text
-        let filter_text = self.tuistate.issue_table.filter().text().to_lowercase();
-        let filtered_issues: Vec<&crate::feat::issue::Issue> = self
+        let filter_text = self
+            .tuistate
+            .issue_table
+            .filter_input_state()
+            .text()
+            .to_lowercase();
+        let mut filtered_issues: Vec<&crate::feat::issue::Issue> = self
             .issues
             .iter_issues()
             .filter(|issue| {
@@ -57,14 +65,55 @@ impl IssueTableDraw for &mut App {
 
         let columns = &self.tuistate.issue_table.columns;
 
+        // Sort filtered issues
+        let sort_col = &self.tuistate.issue_table.sort_by;
+        let sort_dir = self.tuistate.issue_table.sort_direction;
+        filtered_issues.sort_by(|issue1, issue2| {
+            let ord = match sort_col {
+                Column::Id => issue1.id.cmp(&issue2.id),
+                Column::Title => issue1.title.cmp(&issue2.title),
+                Column::Created => issue1.created.cmp(&issue2.created),
+                Column::Status => issue1.status.cmp(&issue2.status),
+                Column::Priority => issue1.priority.cmp(&issue2.priority),
+                Column::CreatedBy => issue1.created_by.cmp(&issue2.created_by),
+                Column::Custom(key) => todo!(),
+            };
+            // issue1
+            // .custom
+            // .get(key.as_str())
+            // .map_or("")
+            // .cmp(&issue2.custom.get(key.as_str()).map_or("")),
+            match sort_dir {
+                SortDirection::Ascending => ord,
+                SortDirection::Descending => ord.reverse(),
+            }
+        });
+
         // Header
         let header_style = Style::default()
             .fg(Color::Yellow)
             .add_modifier(Modifier::BOLD);
+        let selected_header_style = Style::default()
+            .fg(Color::White)
+            .bg(Color::DarkGray)
+            .add_modifier(Modifier::BOLD);
         let header = Row::new(
             columns
                 .iter()
-                .map(|col| Cell::from(col.to_string()).style(header_style))
+                .map(|col| {
+                    let mut label = col.to_string();
+                    let cell_style = if col == sort_col {
+                        let arrow = match sort_dir {
+                            SortDirection::Ascending => " ▲",
+                            SortDirection::Descending => " ▼",
+                        };
+                        label.push_str(arrow);
+                        selected_header_style
+                    } else {
+                        header_style
+                    };
+                    Cell::from(label).style(cell_style)
+                })
                 .collect::<Vec<_>>(),
         );
 
@@ -121,7 +170,7 @@ impl IssueTableDraw for &mut App {
             input_box,
             filter_area,
             buf,
-            self.tuistate.issue_table.filter_mut(),
+            self.tuistate.issue_table.filter_input_state_mut(),
         );
     }
 }

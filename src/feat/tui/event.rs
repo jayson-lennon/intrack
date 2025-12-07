@@ -1,5 +1,6 @@
 pub type Event = crate::feat::tui::wrapper::Event;
 pub type KeyEvent = crossterm::event::KeyEvent;
+pub type KeyModifiers = crossterm::event::KeyModifiers;
 pub type KeyCode = crossterm::event::KeyCode;
 pub type KeyEventKind = crossterm::event::KeyEventKind;
 
@@ -11,6 +12,8 @@ pub trait EventExt {
     fn is_code(&self, code: KeyCode) -> bool;
     /// Returns `Some` if the event is a keypress containing a keycode.
     fn keypress(&self) -> Option<KeyCode>;
+    /// Returns the modifiers held during a keypress.
+    fn modifiers(&self) -> Option<KeyModifiers>;
 }
 
 impl EventExt for Event {
@@ -31,6 +34,16 @@ impl EventExt for Event {
             && key.kind == KeyEventKind::Press
         {
             Some(key.code)
+        } else {
+            None
+        }
+    }
+
+    fn modifiers(&self) -> Option<KeyModifiers> {
+        if let Event::Key(key) = self
+            && key.kind == KeyEventKind::Press
+        {
+            Some(key.modifiers)
         } else {
             None
         }

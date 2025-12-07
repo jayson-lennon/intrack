@@ -6,7 +6,14 @@ pub use draw::IssueTableDraw;
 pub use input::IssueListPageInput;
 pub use state::IssueTableState;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SortDirection {
+    #[default]
+    Ascending,
+    Descending,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Column {
     Id,
     Title,

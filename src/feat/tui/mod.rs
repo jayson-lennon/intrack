@@ -2,7 +2,7 @@ mod event;
 mod state;
 mod wrapper;
 
-pub use event::{Event, EventExt, KeyCode, KeyEvent, KeyEventKind};
+pub use event::{Event, EventExt, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 pub use state::TuiState;
 pub use wrapper::{Tui, TuiError};
 
