@@ -36,7 +36,6 @@ impl IssueTableDraw for &mut App {
         let filter_text = self.tuistate.issue_table.filter.text().to_lowercase();
         let filtered_issues: Vec<&crate::feat::issue::Issue> = self
             .issues
-            // TODO: Replace `self.issues.iter()` with actual iterator over `&Issue` from `Issues` (e.g., `self.issues.issues.iter()` if `Issues` has `pub issues: Vec<Issue>`).
             .iter_issues()
             .filter(|issue| {
                 filter_text.is_empty() || issue.title.to_lowercase().contains(&filter_text)
@@ -90,7 +89,7 @@ impl IssueTableDraw for &mut App {
                                 Column::Custom(key) => issue
                                     .custom
                                     .get(key.as_str())
-                                    .map_or(String::default().into(), |v| v.into()),
+                                    .map_or(String::default().into(), Cow::from),
                             };
                             Cell::from(content)
                         })
