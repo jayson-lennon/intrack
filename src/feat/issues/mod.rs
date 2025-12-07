@@ -46,7 +46,7 @@ impl Issues {
     }
 
     /// Applies a single event to update the projected state.
-    pub fn apply_event(&mut self, event: IssueEvent) {
+    fn apply_event(&mut self, event: IssueEvent) {
         match event {
             IssueEvent::IssueCreated(item) => {
                 self.issues.insert(item.id, item);
@@ -159,5 +159,9 @@ impl Issues {
         self.apply_event(event.clone());
 
         Ok(())
+    }
+
+    pub fn get_issue(&self, id: &IssueId) -> Option<&Issue> {
+        self.issues.get(id)
     }
 }

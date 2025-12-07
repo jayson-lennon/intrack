@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use ratatui::widgets::TableState;
 
 use crate::feat::{
+    issue::IssueId,
     tui_issue_table::{Column, SortDirection},
     tui_widget::InputBoxState,
 };
@@ -12,6 +15,8 @@ pub struct IssueTableState {
     pub(in crate::feat::tui_issue_table) sort_by: Column,
     pub(in crate::feat::tui_issue_table) sort_direction: SortDirection,
     pub(in crate::feat::tui_issue_table) columns: Vec<Column>,
+
+    pub(in crate::feat::tui_issue_table) display_map: HashMap<usize, IssueId>,
 }
 
 impl Default for IssueTableState {
@@ -29,11 +34,26 @@ impl Default for IssueTableState {
                 Column::Priority,
                 Column::CreatedBy,
             ],
+            display_map: HashMap::default(),
         }
     }
 }
 
 impl IssueTableState {
+    /// Returns the index of the currently selected items.
+    ///
+    /// # Notes
+    ///
+    /// Currently only 1 selection is supported. A `Vec` is returned here so that adding
+    /// multi-select doesn't cause breaking changes.
+    pub fn selected(&self) -> Vec<usize> {
+        if let Some(selected) = self.table.selected() {
+            vec![selected]
+        } else {
+            vec![]
+        }
+    }
+
     pub fn sort_next_column(&mut self) {
         if let Some(i) = self.columns.iter().position(|c| *c == self.sort_by) {
             let next_i = (i + 1) % self.columns.len();

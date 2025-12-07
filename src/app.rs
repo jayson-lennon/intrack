@@ -146,9 +146,7 @@ impl App {
                         })
                         .change_context(AppError)?;
                     }
-                    Event::Tick => {
-                        self.on_tick();
-                    }
+                    Event::Tick => {}
                     _ => (),
                 }
 
@@ -201,13 +199,6 @@ impl App {
         Ok(tui)
     }
 
-    /// Handles periodic tick events.
-    ///
-    /// This method is called at a fixed interval defined by the tick rate configuration. Currently
-    /// performs no operation but can be extended to handle periodic tasks like state updates,
-    /// animations, or background processing.
-    fn on_tick(&mut self) {}
-
     /// Renders the application UI to the provided frame.
     ///
     /// Draws the current page's UI components based on the application's TUI state. The rendering
@@ -235,11 +226,13 @@ impl App {
     /// Returns an error if the event cannot be processed due to invalid state or event data.
     pub fn handle_event(&mut self, event: &Event) -> Result<(), Report<EventHandlerError>> {
         use crate::feat::tui::{EventPropagation, KeyCode, Page};
-        use crate::feat::tui_issue_table::IssueListPageInput;
+        use crate::feat::tui_issue_table::IssueTablePageInput;
 
         // Match only on the page. The page input handler will manage the focus.
         let propagation = match self.tuistate.page() {
-            Page::IssueTable => IssueListPageInput::handle(self, event),
+            Page::IssueTable => {
+                IssueTablePageInput::handle(self, event).change_context(EventHandlerError)?
+            }
         };
 
         match propagation {

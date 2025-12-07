@@ -15,8 +15,8 @@ pub enum Page {
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
 pub enum Focus {
     #[default]
-    IssueList,
-    IssueListFilter,
+    IssueTable,
+    IssueTableFilter,
 }
 
 /// Return type from custom widgets during their input handling phase.

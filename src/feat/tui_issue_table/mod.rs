@@ -4,9 +4,11 @@ mod state;
 
 pub use draw::IssueTableDraw;
 use error_stack::Report;
-pub use input::IssueListPageInput;
+pub use input::IssueTablePageInput;
 pub use state::IssueTableState;
 use wherror::Error;
+
+use crate::feat::{issue::Issue, issues::Issues};
 
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SortDirection {
@@ -59,6 +61,32 @@ impl std::str::FromStr for Column {
             _ => Ok(Column::Custom(s.trim().to_string())),
         }
     }
+}
+
+fn apply_issue_filter<'a>(filter_text: &str, issues: &'a Issues) -> Vec<&'a Issue> {
+    let filter_text = filter_text.to_lowercase();
+    issues
+        .iter_issues()
+        .filter(|issue| filter_text.is_empty() || issue.title.to_lowercase().contains(&filter_text))
+        .collect()
+}
+
+fn apply_issue_sort(filtered_issues: &mut Vec<&Issue>, sort_col: &Column, sort_dir: SortDirection) {
+    filtered_issues.sort_by(|issue1, issue2| {
+        let ord = match sort_col {
+            Column::Id => issue1.id.cmp(&issue2.id),
+            Column::Title => issue1.title.cmp(&issue2.title),
+            Column::Created => issue1.created.cmp(&issue2.created),
+            Column::Status => issue1.status.cmp(&issue2.status),
+            Column::Priority => issue1.priority.cmp(&issue2.priority),
+            Column::CreatedBy => issue1.created_by.cmp(&issue2.created_by),
+            Column::Custom(_) => todo!(),
+        };
+        match sort_dir {
+            SortDirection::Ascending => ord,
+            SortDirection::Descending => ord.reverse(),
+        }
+    });
 }
 
 #[cfg(test)]

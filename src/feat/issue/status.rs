@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use error_stack::{Report, ResultExt};
-use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de::Visitor};
 use strum::Display;
 use wherror::Error;
 
@@ -16,6 +16,16 @@ pub enum Status {
     Open,
     /// Issue is closed.
     Closed,
+}
+
+impl Status {
+    #[must_use]
+    pub fn invert(&self) -> Self {
+        match self {
+            Self::Open => Self::Closed,
+            Self::Closed => Self::Open,
+        }
+    }
 }
 
 impl FromStr for Status {
