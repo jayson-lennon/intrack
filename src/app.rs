@@ -110,17 +110,24 @@ impl App {
     }
 
     pub fn handle_event(&mut self, event: &Event) -> Result<(), Report<EventHandlerError>> {
-        use crate::feat::tui::{Focus, KeyCode, Page};
+        use crate::feat::tui::{EventPropagation, KeyCode, Page};
         use crate::feat::tui_issue_list::IssueListPageInput;
 
-        match event {
-            Event::Key(key) if key.code == KeyCode::Char('q') => self.should_quit = true,
-            _ => (),
-        }
-
-        match self.tuistate.page() {
-            Page::IssueList => IssueListPageInput::handle(self, event)?,
+        // Match only on the page. The page input handler will manage the focus.
+        let propagation = match self.tuistate.page() {
+            Page::IssueList => IssueListPageInput::handle(self, event),
         };
+
+        match propagation {
+            EventPropagation::Continue => {
+                // Handle top-level keystrokes here
+                match event {
+                    Event::Key(key) if key.code == KeyCode::Char('q') => self.should_quit = true,
+                    _ => (),
+                }
+            }
+            EventPropagation::Stop => (),
+        }
 
         Ok(())
     }

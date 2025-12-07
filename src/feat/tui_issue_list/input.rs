@@ -1,25 +1,39 @@
-use error_stack::Report;
-
 use crate::{
     App,
-    app::EventHandlerError,
     feat::tui::{Event, EventExt, EventPropagation, Focus, KeyCode},
 };
 
 pub trait IssueListPageInput {
-    fn handle(self, event: &Event) -> Result<EventPropagation, Report<EventHandlerError>>;
+    fn handle(&mut self, event: &Event) -> EventPropagation;
 }
 
-impl IssueListPageInput for &mut App {
-    fn handle(self, event: &Event) -> Result<EventPropagation, Report<EventHandlerError>> {
+impl IssueListPageInput for App {
+    fn handle(&mut self, event: &Event) -> EventPropagation {
         match self.tuistate.focus() {
             Focus::IssueList => {
-                if event.is_char('/') {
-                    self.tuistate.set_focus(Focus::IssueListFilter);
-                    self.tuistate.issue_list.filter.set_focused(true);
-                    Ok(EventPropagation::Stop)
+                if let Some(key) = event.keypress() {
+                    match key {
+                        KeyCode::Up => {
+                            self.tuistate.issue_list.select_previous_list_item();
+                            EventPropagation::Stop
+                        }
+                        KeyCode::Down => {
+                            self.tuistate.issue_list.select_next_list_item();
+                            EventPropagation::Stop
+                        }
+                        KeyCode::Char('/') => {
+                            if event.is_char('/') {
+                                self.tuistate.set_focus(Focus::IssueListFilter);
+                                self.tuistate.issue_list.filter_mut().set_focused(true);
+                                EventPropagation::Stop
+                            } else {
+                                EventPropagation::Continue
+                            }
+                        }
+                        _ => EventPropagation::Continue,
+                    }
                 } else {
-                    Ok(EventPropagation::Continue)
+                    EventPropagation::Continue
                 }
             }
             Focus::IssueListFilter => {
@@ -27,11 +41,15 @@ impl IssueListPageInput for &mut App {
                     && key.code == KeyCode::Esc
                 {
                     self.tuistate.set_focus(Focus::IssueList);
-                    self.tuistate.issue_list.filter.set_focused(false);
-                    Ok(EventPropagation::Stop)
+                    self.tuistate.issue_list.filter_mut().set_focused(false);
+                    EventPropagation::Stop
                 } else {
-                    Ok(self.tuistate.issue_list.filter.handle_input(event))
+                    self.tuistate.issue_list.filter_mut().handle_input(event)
                 }
+            }
+            _ => {
+                self.tuistate.set_focus(Focus::IssueList);
+                EventPropagation::Stop
             }
         }
     }

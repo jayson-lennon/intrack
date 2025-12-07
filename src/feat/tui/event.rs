@@ -7,18 +7,25 @@ pub type KeyEventKind = crossterm::event::KeyEventKind;
 pub trait EventExt {
     /// Returns `true` if the event is a key press for the specified character.
     fn is_char(&self, ch: char) -> bool;
+    /// Returns `true` if the event is a key press for the specified key code.
+    fn is_code(&self, code: KeyCode) -> bool;
     /// Returns `Some` if the event is a keypress containing a keycode.
     fn keypress(&self) -> Option<KeyCode>;
 }
 
 impl EventExt for Event {
     fn is_char(&self, ch: char) -> bool {
+        self.is_code(KeyCode::Char(ch))
+    }
+
+    fn is_code(&self, code: KeyCode) -> bool {
         if let Event::Key(key) = self {
-            key.kind == KeyEventKind::Press && key.code == KeyCode::Char(ch)
+            key.kind == KeyEventKind::Press && key.code == code
         } else {
             false
         }
     }
+
     fn keypress(&self) -> Option<KeyCode> {
         if let Event::Key(key) = self
             && key.kind == KeyEventKind::Press

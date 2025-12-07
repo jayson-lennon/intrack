@@ -12,14 +12,6 @@ pub enum Page {
     IssueList,
 }
 
-impl Into<usize> for Page {
-    fn into(self) -> usize {
-        match self {
-            Self::IssueList => 0,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
 pub enum Focus {
     #[default]
