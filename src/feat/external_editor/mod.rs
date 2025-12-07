@@ -19,7 +19,16 @@ pub struct ExternalEditor {
 impl ExternalEditor {
     /// Launches an external editor pre-populated with the given data.
     ///
+    /// The callback function allows you to edit the program state based on the user input. If
+    /// `None` is returned, then this means the user did not save their work.
+    ///
     /// Set the `file_extension` to help editors with syntax highlighting.
+    ///
+    /// # Errors
+    ///
+    /// Although this method only returns an `Option`, the engine will exit the program if an error
+    /// occurs while trying to open `$EDITOR`, or if an error occurs managing the temp files
+    /// required to gather the input.
     pub fn edit<D, E, F>(
         &mut self,
         data: D,
