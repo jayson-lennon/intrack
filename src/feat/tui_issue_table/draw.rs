@@ -42,11 +42,6 @@ impl IssueTableDraw for &mut App {
             })
             .collect();
 
-        let columns = {
-            let state = &self.tuistate.issue_table;
-            state.columns.clone()
-        };
-
         // Clamp table selection to filtered length
         let table_state = &mut self.tuistate.issue_table.table;
         if let Some(selected) = table_state.selected() {
@@ -59,6 +54,8 @@ impl IssueTableDraw for &mut App {
                 });
             }
         }
+
+        let columns = &self.tuistate.issue_table.columns;
 
         // Header
         let header_style = Style::default()
@@ -102,12 +99,12 @@ impl IssueTableDraw for &mut App {
         let constraints: Vec<Constraint> = columns
             .iter()
             .map(|col| match col {
-                Column::Id => Constraint::Length(6),
+                Column::Id => Constraint::Length(4),
                 Column::Title => Constraint::Fill(1),
                 Column::Created => Constraint::Length(20),
-                Column::Status => Constraint::Length(8),
-                Column::Priority => Constraint::Length(10),
-                Column::CreatedBy => Constraint::Length(15),
+                Column::Status => Constraint::Length(6),
+                Column::Priority => Constraint::Length(9),
+                Column::CreatedBy => Constraint::Length(30),
                 Column::Custom(_) => Constraint::Min(12),
             })
             .collect();
