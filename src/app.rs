@@ -1,10 +1,5 @@
 mod config;
 
-use std::sync::{
-    Arc,
-    atomic::{AtomicBool, Ordering},
-};
-
 pub use config::AppConfig;
 
 use bon::Builder;
@@ -81,8 +76,12 @@ impl App {
         Ok(tui)
     }
 
-    /// Stops event handler, exits raw mode, exits alternate screen
-    fn kill_backend(tui: Tui) {
+    /// Stops event handler, exits raw mode, exits alternate screen.
+    ///
+    /// # Notes
+    ///
+    /// Events will no longer be sent to the application until a new backend is created.
+    fn kill_backend(_: Tui) {
         // dropping the backend automatically cleans up.
     }
 
@@ -92,26 +91,7 @@ impl App {
         loop {
             // `tui.next().await` blocks till next event
             if let Some(ev) = tui.next().await {
-                if let Some(ExternalEditorEntry {
-                    data: prompt,
-                    file_extension,
-                    callback,
-                }) = self.external_editor.take()
-                {
-                    Self::kill_backend(tui);
-                    let result = dialoguer::Editor::default()
-                        .require_save(true)
-                        .extension(&file_extension)
-                        .edit(&prompt)
-                        .change_context(AppError)
-                        .attach("failed to gather content from external editor")?;
-                    tui = Self::new_backend(&self.config)?;
-                    callback(self, result);
-                    tui.draw(|f| {
-                        self.draw(f);
-                    })
-                    .change_context(AppError)?;
-                }
+                tui = self.try_external_editor(tui)?;
                 // Determine whether to render or tick
                 match ev {
                     Event::Render | Event::Key(_) | Event::Mouse(_) | Event::Resize(_, _) => {
@@ -137,6 +117,31 @@ impl App {
         Self::kill_backend(tui);
 
         Ok(())
+    }
+
+    fn try_external_editor(&mut self, tui: Tui) -> Result<Tui, Report<AppError>> {
+        let mut tui = tui;
+        if let Some(ExternalEditorEntry {
+            data: prompt,
+            file_extension,
+            callback,
+        }) = self.external_editor.take()
+        {
+            Self::kill_backend(tui);
+            let result = dialoguer::Editor::default()
+                .require_save(true)
+                .extension(&file_extension)
+                .edit(&prompt)
+                .change_context(AppError)
+                .attach("failed to gather content from external editor")?;
+            tui = Self::new_backend(&self.config)?;
+            callback(self, result);
+            tui.draw(|f| {
+                self.draw(f);
+            })
+            .change_context(AppError)?;
+        }
+        Ok(tui)
     }
 
     fn on_tick(&mut self) {}
