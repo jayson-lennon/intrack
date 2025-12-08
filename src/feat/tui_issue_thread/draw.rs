@@ -1,12 +1,26 @@
 use ratatui::{
     prelude::*,
-    widgets::{Block, Borders, List, ListItem},
+    widgets::{Block, Borders},
 };
+use tui_widget_list::{ListBuilder, ListView};
 
 use crate::{
     App,
     feat::{issue::Comment, tui_widget::HelpPopup},
 };
+
+// Define LineItem before impl IssueThreadDraw:
+#[derive(Debug, Clone)]
+struct LineItem {
+    text: String,
+    style: Style,
+}
+
+impl Widget for LineItem {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        Line::from(self.text).style(self.style).render(area, buf);
+    }
+}
 
 pub trait IssueThreadDraw {
     fn render(self, area: Rect, buf: &mut Buffer);
@@ -39,42 +53,44 @@ impl IssueThreadDraw for &mut App {
             .next()
             .unwrap_or_default();
 
-        let mut items: Vec<ListItem> = vec![
-            ListItem::new(format!("Status: {:?}", issue.status)),
-            ListItem::new(format!("Priority: {}", issue.priority)),
-            ListItem::new(format!(
-                "Created: {}",
-                issue.created.strftime("%Y-%m-%d %H:%M:%S")
-            )),
-            ListItem::new(format!("Created by: {}", issue.created_by)),
-            ListItem::new(""),
-        ];
-
-        let max_width = inner_area.width;
-        for comment in &comments {
-            let header = format!(
-                "Comment by {} at {}",
-                comment.created_by,
-                comment.created.strftime("%Y-%m-%d %H:%M:%S")
-            );
-            items.push(ListItem::new(header));
-            for line in comment.content.lines() {
-                for line in textwrap::wrap(line, (max_width as usize).saturating_sub(4)) {
-                    let trimmed_line = line.trim_start();
-                    if !trimmed_line.is_empty() {
-                        items.push(ListItem::new(format!("  {trimmed_line}")));
+        let line_data: Vec<String> = {
+            let mut data = vec![
+                format!("Status: {:?}", issue.status),
+                format!("Priority: {}", issue.priority),
+                format!("Created: {}", issue.created.strftime("%Y-%m-%d %H:%M:%S")),
+                format!("Created by: {}", issue.created_by),
+                String::new(),
+            ];
+            let indent_width = 3;
+            let max_width = inner_area.width.saturating_sub(indent_width as u16).max(1) as usize;
+            for comment in &comments {
+                let header = format!(
+                    "Comment by {} at {}",
+                    comment.created_by,
+                    comment.created.strftime("%Y-%m-%d %H:%M:%S")
+                );
+                data.push(header);
+                for line in comment.content.lines() {
+                    for wrapped in textwrap::wrap(line, max_width) {
+                        let trimmed_line = wrapped.trim_start();
+                        if !trimmed_line.is_empty() {
+                            data.push(format!("{:indent_width$} {}", "", trimmed_line));
+                        }
+                    }
+                    if line.trim().is_empty() {
+                        data.push(format!("{:indent_width$}", ""));
                     }
                 }
-                if line.is_empty() {
-                    items.push(ListItem::new(""));
-                }
+                data.push(String::new());
             }
-            items.push(ListItem::new(""));
-        }
+            data
+        };
 
-        // Clamp selection to items length
-        if let Some(selected) = list_state.selected() {
-            let len = items.len();
+        let total_count = line_data.len() as usize;
+
+        // Clamp selection
+        if let Some(selected) = list_state.selected {
+            let len = total_count;
             if selected >= len {
                 list_state.select(if len == 0 {
                     None
@@ -84,13 +100,24 @@ impl IssueThreadDraw for &mut App {
             }
         }
 
-        let list = List::new(items).block(Block::default()).highlight_style(
-            Style::default()
-                .bg(Color::DarkGray)
-                .add_modifier(Modifier::BOLD),
-        );
+        let builder = ListBuilder::new(move |context| {
+            let text = line_data[context.index].clone();
+            let mut item = LineItem {
+                text,
+                style: Style::default(),
+            };
+            if context.is_selected {
+                item.style = Style::default()
+                    .bg(Color::DarkGray)
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD);
+            }
+            (item, 1u16)
+        });
 
-        StatefulWidget::render(list, inner_area, buf, list_state);
+        let list = ListView::new(builder, total_count);
+
+        list.render(inner_area, buf, list_state);
 
         if self.tuistate.issue_thread.show_help {
             let items = vec![

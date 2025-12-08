@@ -1,4 +1,4 @@
-use ratatui::widgets::ListState;
+use tui_widget_list::ListState;
 
 use crate::feat::issue::IssueId;
 
