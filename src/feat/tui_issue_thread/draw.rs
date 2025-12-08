@@ -50,6 +50,7 @@ impl IssueThreadDraw for &mut App {
             ListItem::new(""),
         ];
 
+        let max_width = inner_area.width;
         for comment in &comments {
             let header = format!(
                 "Comment by {} at {}",
@@ -58,9 +59,14 @@ impl IssueThreadDraw for &mut App {
             );
             items.push(ListItem::new(header));
             for line in comment.content.lines() {
-                let trimmed_line = line.trim_start();
-                if !trimmed_line.is_empty() {
-                    items.push(ListItem::new(format!("  {trimmed_line}")));
+                for line in textwrap::wrap(line, (max_width as usize).saturating_sub(4)) {
+                    let trimmed_line = line.trim_start();
+                    if !trimmed_line.is_empty() {
+                        items.push(ListItem::new(format!("  {trimmed_line}")));
+                    }
+                }
+                if line.is_empty() {
+                    items.push(ListItem::new(""));
                 }
             }
             items.push(ListItem::new(""));
@@ -78,13 +84,11 @@ impl IssueThreadDraw for &mut App {
             }
         }
 
-        let list = List::new(items)
-            .block(Block::default().title("Comments").borders(Borders::ALL))
-            .highlight_style(
-                Style::default()
-                    .bg(Color::DarkGray)
-                    .add_modifier(Modifier::BOLD),
-            );
+        let list = List::new(items).block(Block::default()).highlight_style(
+            Style::default()
+                .bg(Color::DarkGray)
+                .add_modifier(Modifier::BOLD),
+        );
 
         StatefulWidget::render(list, inner_area, buf, list_state);
 
