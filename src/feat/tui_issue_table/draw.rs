@@ -162,9 +162,10 @@ impl IssueTableDraw for &mut App {
                 ("j", "Cursor down"),
                 ("k", "Cursor up"),
                 ("l", "Cursor right"),
-                ("<alt>c", "Change columns"),
-                ("<alt>s", "Toggle issue status"),
+                ("c", "Change columns"),
+                ("s", "Toggle issue status"),
                 ("/", "Filter"),
+                ("n", "New issue"),
                 ("?", "Show help"),
             ];
             let help_widget = HelpPopup::new(items).title("Hotkeys");

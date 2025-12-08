@@ -13,7 +13,8 @@ mod template;
 pub use comment::Comment;
 pub use priority::{Priority, PriorityParseError};
 pub use status::{Status, StatusParseError};
-pub use template::{IssueItemTemplate, IssueTemplateError};
+pub use template::IssueItemTemplate;
+use wherror::Error;
 
 /// A type alias for issue identifiers.
 pub type IssueId = u64;
@@ -30,6 +31,10 @@ pub type IssueId = u64;
 static RE_ISSUE_EXTRACT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?s)^---\n+(?P<yaml>.*)\n+---(?P<comment>.*)$"#).unwrap());
 
+#[derive(Debug, Error)]
+#[error(debug)]
+pub struct IssueParseError;
+
 /// Represents a project issue with metadata and custom fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Issue {
@@ -43,6 +48,22 @@ pub struct Issue {
 }
 
 impl Issue {
+    /// Returns the template that can be used to interactively create an issue.
+    pub fn new_template() -> &'static str {
+        r#"---
+title: ENTER ISSUE TITLE HERE
+created_by: YOUR.EMAIL@EXAMPLE.COM
+
+# Trivial | Low | Medium | High | Critical | Blocker
+priority: Low
+
+custom:
+  # assigned_to: user
+
+---
+<no comment provided>
+"#
+    }
     /// Creates a new issue by opening an editor with a YAML template.
     ///
     /// This method presents the user with an editor containing a template for the new issue.
@@ -56,40 +77,19 @@ impl Issue {
     /// - The external editor fails to launch or process the template.
     /// - The edited content cannot be parsed to extract YAML frontmatter and comment.
     /// - The YAML frontmatter fails to deserialize into an `IssueItemTemplate`.
-    pub fn new_interactive(
+    pub fn from_str<S>(
         new_id: IssueId,
-    ) -> Result<Option<(Issue, Comment)>, Report<IssueTemplateError>> {
-        let template = r#"---
-title: ENTER ISSUE TITLE HERE
-created_by: YOUR.EMAIL@EXAMPLE.COM
-
-# Trivial | Low | Medium | High | Critical | Blocker
-priority: Low
-
-custom:
-  # assigned_to: user
-
----
-<no comment provided>
-"#;
-
-        let mut edit = dialoguer::Editor::new();
-        edit.require_save(true);
-        edit.extension("yaml");
-
-        let Some(issue) = edit
-            .edit(template)
-            .change_context(IssueTemplateError)
-            .attach("failed to edit new issue template")?
-        else {
-            return Ok(None);
-        };
-
+        issue: S,
+    ) -> Result<Option<(Issue, Comment)>, Report<IssueParseError>>
+    where
+        S: AsRef<str>,
+    {
+        let issue = issue.as_ref();
         let (yaml, comment) = Self::extract_issue_parts(&issue)?;
 
         let issue = {
             let issue: IssueItemTemplate = serde_yaml::from_str(yaml)
-                .change_context(IssueTemplateError)
+                .change_context(IssueParseError)
                 .attach("failed to deserialize new issue")?;
             Issue {
                 id: new_id,
@@ -121,24 +121,24 @@ custom:
     ///
     /// # Errors
     ///
-    /// Returns `Err(Report<IssueTemplateError>)` if:
+    /// Returns `Err(Report<IssueParseError>)` if:
     /// - The input string does not match the expected regex pattern.
     /// - The YAML frontmatter capture group is missing.
     /// - The comment capture group is missing.
-    fn extract_issue_parts(issue: &str) -> Result<(&str, &str), Report<IssueTemplateError>> {
+    fn extract_issue_parts(issue: &str) -> Result<(&str, &str), Report<IssueParseError>> {
         let caps = &(*RE_ISSUE_EXTRACT)
             .captures(issue.trim())
-            .ok_or(IssueTemplateError)
+            .ok_or(IssueParseError)
             .attach("No match found")?;
         let yaml = caps
             .name("yaml")
-            .ok_or(IssueTemplateError)
+            .ok_or(IssueParseError)
             .attach("No yaml group")?
             .as_str()
             .trim();
         let comment = caps
             .name("comment")
-            .ok_or(IssueTemplateError)
+            .ok_or(IssueParseError)
             .attach("Missing comment group")?
             .as_str()
             .trim();

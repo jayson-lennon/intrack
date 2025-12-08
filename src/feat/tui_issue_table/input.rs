@@ -4,6 +4,8 @@ use wherror::Error;
 use crate::{
     App,
     feat::{
+        external_editor::ExternalEditorError,
+        issue::Issue,
         issues::IssueEvent,
         tui::{Event, EventExt, EventPropagation, Focus, KeyCode, KeyModifiers},
         tui_issue_table::{IssueTableState, SortDirection},
@@ -76,17 +78,40 @@ impl IssueTablePageInput for App {
                 if let (Some(key), mods) = (event.keypress(), event.modifiers()) {
                     match (key, mods) {
                         // Edit columns
-                        (KeyCode::Char('c'), Some(mods)) if mods.contains(KeyModifiers::ALT) => {
+                        (KeyCode::Char('c'), _) => {
                             let columns = &self.tuistate.issue_table.columns;
                             let columns = IssueTableState::available_columns_for_editing(columns);
                             self.external_editor.edit(columns, "", |app, response| {
                                 if let Some(columns) = response {
                                     let columns = IssueTableState::columns_from_edited(&columns);
-                                    tracing::debug!(cols=?columns, "set coluns");
                                     app.tuistate.issue_table.set_columns(columns);
                                 }
                                 Ok(())
                             });
+                            return Ok(EventPropagation::Stop);
+                        }
+                        // Create new issue
+                        (KeyCode::Char('n'), _) => {
+                            self.external_editor.edit(
+                                Issue::new_template(),
+                                "",
+                                move |app, response| {
+                                    if let Some(issue) = response {
+                                        let next_id = app.issues.next_issue_id();
+                                        let issue = Issue::from_str(next_id, issue)
+                                            .change_context(ExternalEditorError)?;
+                                        if let Some((issue, comment)) = issue {
+                                            app.issues
+                                                .append_to_log(&app.args.event_log, issue)
+                                                .change_context(ExternalEditorError)?;
+                                            app.issues
+                                                .append_to_log(&app.args.event_log, comment)
+                                                .change_context(ExternalEditorError)?;
+                                        }
+                                    }
+                                    Ok(())
+                                },
+                            );
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort descending
@@ -128,7 +153,7 @@ impl IssueTablePageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Toggle status line
-                        (KeyCode::Char('s'), Some(mods)) if mods.contains(KeyModifiers::ALT) => {
+                        (KeyCode::Char('s'), _) => {
                             let indices = self.tuistate.issue_table.selected();
                             if indices.is_empty() {
                                 return Ok(EventPropagation::Stop);
@@ -145,7 +170,7 @@ impl IssueTablePageInput for App {
                                     IssueEvent::StatusChanged { issue_id, status }
                                 };
                                 self.issues
-                                    .append_to_log(&self.args.event_log, &event)
+                                    .append_to_log(&self.args.event_log, event)
                                     .change_context(IssueTablePageInputError)?;
                             }
                             return Ok(EventPropagation::Stop);

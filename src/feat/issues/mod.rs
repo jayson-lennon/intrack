@@ -129,14 +129,12 @@ impl Issues {
     ///
     /// Returns an error if the file cannot be opened for appending, if the event
     /// cannot be serialized to JSON, or if writing to the file fails.
-    pub fn append_to_log<P>(
-        &mut self,
-        path: P,
-        event: &IssueEvent,
-    ) -> Result<(), Report<IssuesEventError>>
+    pub fn append_to_log<P, I>(&mut self, path: P, event: I) -> Result<(), Report<IssuesEventError>>
     where
         P: AsRef<Path>,
+        I: Into<IssueEvent>,
     {
+        let event = event.into();
         let path = path.as_ref();
         let mut file = OpenOptions::new()
             .append(true)

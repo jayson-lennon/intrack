@@ -5,10 +5,6 @@ use wherror::Error;
 
 use crate::feat::issue::Priority;
 
-#[derive(Debug, Error)]
-#[error(debug)]
-pub struct IssueTemplateError;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IssueItemTemplate {
     pub title: String,

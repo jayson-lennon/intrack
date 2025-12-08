@@ -15,3 +15,15 @@ pub enum IssueEvent {
         priority: Priority,
     },
 }
+
+impl From<Issue> for IssueEvent {
+    fn from(issue: Issue) -> Self {
+        IssueEvent::IssueCreated(issue)
+    }
+}
+
+impl From<Comment> for IssueEvent {
+    fn from(comment: Comment) -> Self {
+        IssueEvent::CommentAdded(comment)
+    }
+}
