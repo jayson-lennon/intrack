@@ -22,6 +22,7 @@ use intrack::{
 ///
 #[tokio::main]
 pub async fn main() -> Result<(), Report<AppError>> {
+    intrack::init::panic_hook::init();
     intrack::init::error_report::init();
 
     let args = CliArgs::parse();
