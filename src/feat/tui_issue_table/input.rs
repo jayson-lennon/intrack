@@ -6,7 +6,7 @@ use crate::{
     feat::{
         issues::IssueEvent,
         tui::{Event, EventExt, EventPropagation, Focus, KeyCode, KeyModifiers},
-        tui_issue_table::SortDirection,
+        tui_issue_table::{IssueTableState, SortDirection},
     },
 };
 
@@ -52,7 +52,7 @@ impl IssueTablePageInput for App {
     ///
     /// # Key Bindings
     ///
-    /// - **Shift+C**: Open external editor to modify column configuration
+    /// - **Alt+C**: Open external editor to modify column configuration
     /// - **Shift+J**: Sort table in descending order
     /// - **Shift+K**: Sort table in ascending order
     /// - **Shift+L**: Sort by next column
@@ -76,12 +76,16 @@ impl IssueTablePageInput for App {
                 if let (Some(key), mods) = (event.keypress(), event.modifiers()) {
                     match (key, mods) {
                         // Edit columns
-                        (KeyCode::Char('C' | 'c'), Some(mods))
-                            if mods.contains(KeyModifiers::SHIFT) =>
-                        {
-                            self.external_editor.edit("testing", "", |app, response| {
-                                app.config.tick_rate = 9.9;
-                                tracing::error!(response = response, "got response");
+                        (KeyCode::Char('c'), Some(mods)) if mods.contains(KeyModifiers::ALT) => {
+                            let columns = &self.tuistate.issue_table.columns;
+                            let columns = IssueTableState::available_columns_for_editing(columns);
+                            self.external_editor.edit(columns, "", |app, response| {
+                                if let Some(columns) = response {
+                                    let columns = IssueTableState::columns_from_edited(&columns);
+                                    tracing::debug!(cols=?columns, "set coluns");
+                                    app.tuistate.issue_table.set_columns(columns);
+                                }
+                                Ok(())
                             });
                             return Ok(EventPropagation::Stop);
                         }

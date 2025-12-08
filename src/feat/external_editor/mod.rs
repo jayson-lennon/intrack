@@ -1,7 +1,14 @@
 use crate::App;
 use derive_more::Debug;
+use error_stack::Report;
+use wherror::Error;
 
-pub type ExternalEditorCallback = Box<dyn FnOnce(&mut App, Option<String>)>;
+#[derive(Debug, Error)]
+#[error(debug)]
+pub struct ExternalEditorError;
+
+pub type ExternalEditorCallback =
+    Box<dyn FnOnce(&mut App, Option<String>) -> Result<(), Report<ExternalEditorError>>>;
 
 #[derive(Debug)]
 pub struct ExternalEditorEntry {
@@ -38,7 +45,7 @@ impl ExternalEditor {
     where
         D: Into<String>,
         E: Into<String>,
-        F: FnOnce(&mut App, Option<String>) + 'static,
+        F: FnOnce(&mut App, Option<String>) -> Result<(), Report<ExternalEditorError>> + 'static,
     {
         let entry = ExternalEditorEntry {
             data: data.into(),

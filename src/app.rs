@@ -183,14 +183,20 @@ impl App {
         }) = self.external_editor.take()
         {
             Self::kill_backend(tui);
+
             let result = dialoguer::Editor::default()
                 .require_save(true)
                 .extension(&file_extension)
                 .edit(&data)
                 .change_context(AppError)
                 .attach("failed to gather content from external editor")?;
+
+            callback(self, result)
+                .change_context(AppError)
+                .attach("error handling input from external editor")?;
+
             tui = Self::new_backend(&self.config)?;
-            callback(self, result);
+
             tui.draw(|f| {
                 self.draw(f);
             })

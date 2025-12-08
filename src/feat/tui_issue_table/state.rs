@@ -125,4 +125,96 @@ impl IssueTableState {
     pub fn set_sort_direction(&mut self, sort_direction: SortDirection) {
         self.sort_direction = sort_direction;
     }
+
+    pub fn available_columns_for_editing(columns: &[Column]) -> String {
+        let known_columns = vec![
+            Column::Id,
+            Column::Title,
+            Column::Created,
+            Column::Status,
+            Column::Priority,
+            Column::CreatedBy,
+        ];
+        known_columns
+            .into_iter()
+            .map(|col| {
+                if columns.contains(&col) {
+                    format!("{col}")
+                } else {
+                    format!("# {col}")
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    pub fn columns_from_edited(input: &str) -> Vec<Column> {
+        let input = input.trim();
+        input
+            .lines()
+            .filter_map(|line| {
+                let trimmed = line.trim();
+                if trimmed.starts_with('#') || trimmed.is_empty() {
+                    None
+                } else {
+                    trimmed.parse().ok()
+                }
+            })
+            .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case(vec![], "# ID\n# Title\n# Created\n# Status\n# Priority\n# Created By")]
+    #[case(vec![Column::Id], "ID\n# Title\n# Created\n# Status\n# Priority\n# Created By")]
+    #[case(vec![Column::CreatedBy], "# ID\n# Title\n# Created\n# Status\n# Priority\nCreated By")]
+    #[case(
+        vec![Column::Id, Column::Title, Column::Created, Column::Status, Column::Priority, Column::CreatedBy],
+        "ID\nTitle\nCreated\nStatus\nPriority\nCreated By"
+    )]
+    #[case(
+        vec![Column::Custom("Custom".to_string())],
+        "# ID\n# Title\n# Created\n# Status\n# Priority\n# Created By"
+    )]
+    #[case(
+        vec![Column::Id, Column::Status],
+        "ID\n# Title\n# Created\nStatus\n# Priority\n# Created By"
+    )]
+    fn test_available_columns_for_editing(
+        #[case] input_columns: Vec<Column>,
+        #[case] expected: &str,
+    ) {
+        assert_eq!(
+            IssueTableState::available_columns_for_editing(&input_columns),
+            expected
+        );
+    }
+
+    #[rstest]
+    #[case("", vec![])]
+    #[case("  \n\t\n", vec![])]
+    #[case("foo", vec![Column::Custom("foo".to_string())])]
+    #[case("id", vec![Column::Id])]
+    #[case("ID", vec![Column::Id])]
+    #[case("createdby", vec![Column::CreatedBy])]
+    #[case("Created By", vec![Column::CreatedBy])]
+    #[case("  status  \n\n", vec![Column::Status])]
+    #[case("#id\nid\n# title", vec![Column::Id])]
+    #[case(
+        "status\n\n# prio\npriority\nfoo-bar\n  baz  \n# ignored",
+        vec![
+            Column::Status,
+            Column::Priority,
+            Column::Custom("foo-bar".to_string()),
+            Column::Custom("baz".to_string())
+        ]
+    )]
+    fn test_columns_from_edited(#[case] input: &str, #[case] expected: Vec<Column>) {
+        assert_eq!(IssueTableState::columns_from_edited(input), expected);
+    }
 }

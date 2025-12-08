@@ -6,6 +6,7 @@ pub use draw::IssueTableDraw;
 use error_stack::Report;
 pub use input::IssueTablePageInput;
 pub use state::IssueTableState;
+use strum::EnumIter;
 use wherror::Error;
 
 use crate::feat::{issue::Issue, issues::Issues};
@@ -21,7 +22,7 @@ pub enum SortDirection {
 #[error(debug)]
 pub struct ColumnParseError;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, EnumIter)]
 pub enum Column {
     Id,
     Title,
@@ -57,7 +58,7 @@ impl std::str::FromStr for Column {
             "created" => Ok(Column::Created),
             "status" => Ok(Column::Status),
             "priority" => Ok(Column::Priority),
-            "createdby" => Ok(Column::CreatedBy),
+            "createdby" | "created by" => Ok(Column::CreatedBy),
             _ => Ok(Column::Custom(s.trim().to_string())),
         }
     }
@@ -112,6 +113,7 @@ mod tests {
     #[case("createdby", Column::CreatedBy)]
     #[case("CREATEDBY", Column::CreatedBy)]
     #[case("CreatedBy", Column::CreatedBy)]
+    #[case("Created By", Column::CreatedBy)]
     fn test_parse_known(#[case] input: &str, #[case] expected: Column) {
         use std::str::FromStr;
 
@@ -124,9 +126,7 @@ mod tests {
     #[case("", "")]
     #[case(" ", "")]
     #[case("  foo  ", "foo")]
-    #[case("created by", "created by")]
     #[case("ID ", "ID")]
-    #[case("createdby ", "createdby")]
     #[case("id123", "id123")]
     #[case("Custom Field", "Custom Field")]
     fn test_parse_custom(#[case] input: &str, #[case] expected: &str) {
