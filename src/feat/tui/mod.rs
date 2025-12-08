@@ -10,6 +10,7 @@ pub use wrapper::{Tui, TuiError};
 pub enum Page {
     #[default]
     IssueTable,
+    IssueThread,
 }
 
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq)]
@@ -17,6 +18,8 @@ pub enum Focus {
     #[default]
     IssueTable,
     IssueTableFilter,
+
+    IssueThread,
 }
 
 /// Return type from custom widgets during their input handling phase.

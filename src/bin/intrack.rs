@@ -19,8 +19,8 @@ use intrack::{
 /// - Loading the .env file fails (excluding file not found)
 /// - Creating the event log fails
 /// - Loading issues from the event log file fails
-///
 #[tokio::main]
+#[allow(clippy::missing_panics_doc)]
 pub async fn main() -> Result<(), Report<AppError>> {
     intrack::init::panic_hook::init();
     intrack::init::error_report::init();

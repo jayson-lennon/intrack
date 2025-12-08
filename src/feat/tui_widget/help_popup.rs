@@ -1,5 +1,5 @@
 use ratatui::prelude::*;
-use ratatui::widgets::{Block, Borders, Paragraph, Widget};
+use ratatui::widgets::{Block, Borders, Clear, Paragraph, Widget};
 
 #[derive(Clone)]
 pub struct HelpPopup<'a> {
@@ -54,9 +54,11 @@ impl Widget for HelpPopup<'_> {
         let num_seps = (num_cols as u16).saturating_sub(1);
         let total_inner_width = (num_cols as u16) * col_inner_width + num_seps * sep_width;
         let popup_inner_width = total_inner_width.max(20u16);
-        let popup_width = popup_inner_width + 2u16;
+        // +5 for padding
+        let popup_width = popup_inner_width + 5;
         let popup_x = area.width.saturating_sub(popup_width);
-        let popup_height = content_height + 2u16;
+        // +2 for padding
+        let popup_height = content_height + 2;
         let bottom_pad = 1u16;
         let popup_y = area.y + area.height.saturating_sub(popup_height + bottom_pad);
         let popup_rect = Rect {
@@ -66,6 +68,7 @@ impl Widget for HelpPopup<'_> {
             height: popup_height,
         };
 
+        Clear.render(popup_rect, buf);
         buf.set_style(popup_rect, Style::default().bg(Color::Rgb(30, 30, 30)));
 
         let title = self.title.unwrap_or(" Keybinds ");
@@ -114,54 +117,3 @@ impl Widget for HelpPopup<'_> {
         paragraph.render(popup_rect, buf);
     }
 }
-// let area = buf.area();
-//         // Compute column widths
-//         let max_key_width: usize = self.items.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
-//         let max_desc_width: usize = self.items.iter().map(|(_, d)| d.len()).max().unwrap_or(0);
-//         let pair_width = (max_key_width + 2 + max_desc_width) as u16;
-//         let min_inner_width = 20u16;
-//         let popup_inner_width = pair_width.max(min_inner_width);
-//         let popup_width = popup_inner_width + 2u16; // left and right borders
-//         let popup_x = area.width.saturating_sub(popup_width);
-//
-//         let popup_rect = Rect {
-//             x: popup_x,
-//             y: area.y + area.height - self.items.len() as u16 - 4,
-//             width: popup_width,
-//             height: self.items.len() as u16 + 2,
-//         };
-//
-//         buf.set_style(popup_rect, Style::default().bg(Color::Rgb(30, 30, 30)));
-//
-//         let title = self.title.unwrap_or(" Keybinds ");
-//         let block = Block::default()
-//             .title(title)
-//             .title_alignment(Alignment::Center)
-//             .borders(Borders::ALL)
-//             .border_style(Style::default().fg(Color::White));
-//
-//         let key_style = Style::default()
-//             .fg(Color::LightCyan)
-//             .add_modifier(Modifier::BOLD);
-//         let desc_style = Style::default().fg(Color::Gray);
-//
-//         let mut content: Vec<Line<'_>> = Vec::new();
-//         let key_fixed_width = max_key_width + 2;
-//         let desc_fixed_width = max_desc_width;
-//         for (key, desc) in self.items {
-//             let key_padding_len = key_fixed_width.saturating_sub(key.len());
-//             let key_padding_str = " ".repeat(key_padding_len);
-//             let desc_padding_len = desc_fixed_width.saturating_sub(desc.len());
-//             let desc_padding_str = " ".repeat(desc_padding_len);
-//
-//             let line = Line::from(vec![
-//                 Span::styled(key, key_style),
-//                 Span::raw(key_padding_str),
-//                 Span::styled(desc, desc_style),
-//                 Span::raw(desc_padding_str),
-//             ]);
-//             content.push(line);
-//         }
-//
-//         let paragraph = Paragraph::new(content).block(block);
-//         paragraph.render(popup_rect, buf);

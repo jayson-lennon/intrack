@@ -3,6 +3,7 @@ use smart_default::SmartDefault;
 use crate::feat::{
     tui::{Focus, Page},
     tui_issue_table::IssueTableState,
+    tui_issue_thread::IssueThreadState,
 };
 
 /// State of the TUI.
@@ -11,6 +12,7 @@ pub struct TuiState {
     page: Page,
     focus: Focus,
     pub issue_table: IssueTableState,
+    pub issue_thread: IssueThreadState,
 }
 
 impl TuiState {

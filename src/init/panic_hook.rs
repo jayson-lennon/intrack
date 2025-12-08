@@ -25,6 +25,8 @@ pub fn init() {
 
 /// Restores the terminal UI to its original state by disabling raw mode and leaving the alternate screen.
 ///
+/// # Errors
+///
 /// Returns an error if either disabling raw mode or leaving the alternate screen fails.
 pub fn restore_tui() -> io::Result<()> {
     disable_raw_mode()?;

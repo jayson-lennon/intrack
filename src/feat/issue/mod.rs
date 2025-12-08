@@ -85,7 +85,7 @@ custom:
         S: AsRef<str>,
     {
         let issue = issue.as_ref();
-        let (yaml, comment) = Self::extract_issue_parts(&issue)?;
+        let (yaml, comment) = Self::extract_issue_parts(issue)?;
 
         let issue = {
             let issue: IssueItemTemplate = serde_yaml::from_str(yaml)

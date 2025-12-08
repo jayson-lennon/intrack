@@ -7,7 +7,7 @@ use crate::{
         external_editor::ExternalEditorError,
         issue::Issue,
         issues::IssueEvent,
-        tui::{Event, EventExt, EventPropagation, Focus, KeyCode, KeyModifiers},
+        tui::{Event, EventExt, EventPropagation, Focus, KeyCode, KeyModifiers, Page},
         tui_issue_table::{IssueTableState, SortDirection},
     },
 };
@@ -69,6 +69,7 @@ impl IssueTablePageInput for App {
     /// Returns an error when failing to log issue events to the event log
     /// (specifically when toggling issue status).
     #[allow(clippy::too_many_lines)]
+    #[allow(clippy::match_wildcard_for_single_variants)]
     fn handle(
         &mut self,
         event: &Event,
@@ -115,7 +116,7 @@ impl IssueTablePageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort descending
-                        (KeyCode::Char('J' | 'j'), Some(mods))
+                        (KeyCode::Down | KeyCode::Char('J' | 'j'), Some(mods))
                             if mods.contains(KeyModifiers::SHIFT) =>
                         {
                             self.tuistate
@@ -124,7 +125,7 @@ impl IssueTablePageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort ascending
-                        (KeyCode::Char('K' | 'k'), Some(mods))
+                        (KeyCode::Up | KeyCode::Char('K' | 'k'), Some(mods))
                             if mods.contains(KeyModifiers::SHIFT) =>
                         {
                             self.tuistate
@@ -133,14 +134,14 @@ impl IssueTablePageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort next column
-                        (KeyCode::Char('L' | 'l'), Some(mods))
+                        (KeyCode::Right | KeyCode::Char('L' | 'l'), Some(mods))
                             if mods.contains(KeyModifiers::SHIFT) =>
                         {
                             self.tuistate.issue_table.sort_next_column();
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort previous column
-                        (KeyCode::Char('H' | 'h'), Some(mods))
+                        (KeyCode::Left | KeyCode::Char('H' | 'h'), Some(mods))
                             if mods.contains(KeyModifiers::SHIFT) =>
                         {
                             self.tuistate.issue_table.sort_previous_column();
@@ -164,7 +165,8 @@ impl IssueTablePageInput for App {
                                     let issue = self
                                         .issues
                                         .get_issue(&self.tuistate.issue_table.display_map[&index])
-                                        .unwrap();
+                                        .ok_or(IssueTablePageInputError)
+                                        .attach("unable to find issue to toggle status")?;
                                     let issue_id = issue.id;
                                     let status = issue.status.invert();
                                     IssueEvent::StatusChanged { issue_id, status }
@@ -185,6 +187,23 @@ impl IssueTablePageInput for App {
                             self.tuistate.issue_table.cursor_previous();
                             return Ok(EventPropagation::Stop);
                         }
+                        // View issue thread
+                        (KeyCode::Enter, _) => {
+                            let indices = self.tuistate.issue_table.selected();
+                            if let Some(&index) = indices.first() {
+                                let Some(&issue_id) =
+                                    self.tuistate.issue_table.display_map.get(&index)
+                                else {
+                                    return Ok(EventPropagation::Stop);
+                                };
+                                self.tuistate.issue_thread.set_issue_id(issue_id);
+                                self.tuistate.set_page(Page::IssueThread);
+                                self.tuistate.set_focus(Focus::IssueThread);
+                                return Ok(EventPropagation::Stop);
+                            }
+                            return Ok(EventPropagation::Stop);
+                        }
+
                         // Focus search filter box
                         (KeyCode::Char('/'), _) => {
                             if event.is_char('/') {

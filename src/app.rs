@@ -13,7 +13,6 @@ use crate::feat::{
     external_editor::{ExternalEditor, ExternalEditorEntry},
     issues::Issues,
     tui::{Event, Tui, TuiState},
-    tui_issue_table::IssueTableDraw,
 };
 
 /// Top-level error type for the application.
@@ -213,11 +212,14 @@ impl App {
     /// Uses the full frame area for rendering.
     fn draw(&mut self, frame: &mut Frame) {
         use crate::feat::tui::Page;
+        use crate::feat::tui_issue_table::IssueTableDraw;
+        use crate::feat::tui_issue_thread::IssueThreadDraw;
 
         let area = frame.area();
         let buf = frame.buffer_mut();
         match self.tuistate.page() {
             Page::IssueTable => IssueTableDraw::render(self, area, buf),
+            Page::IssueThread => IssueThreadDraw::render(self, area, buf),
         }
     }
 
@@ -233,11 +235,15 @@ impl App {
     pub fn handle_event(&mut self, event: &Event) -> Result<(), Report<EventHandlerError>> {
         use crate::feat::tui::{EventPropagation, KeyCode, Page};
         use crate::feat::tui_issue_table::IssueTablePageInput;
+        use crate::feat::tui_issue_thread::IssueThreadPageInput;
 
         // Match only on the page. The page input handler will manage the focus.
         let propagation = match self.tuistate.page() {
             Page::IssueTable => {
                 IssueTablePageInput::handle(self, event).change_context(EventHandlerError)?
+            }
+            Page::IssueThread => {
+                IssueThreadPageInput::handle(self, event).change_context(EventHandlerError)?
             }
         };
 
