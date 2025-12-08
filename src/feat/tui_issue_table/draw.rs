@@ -4,7 +4,7 @@ use crate::{
     App,
     feat::{
         tui_issue_table::{Column, SortDirection, apply_issue_filter, apply_issue_sort},
-        tui_widget::InputBox,
+        tui_widget::{HelpPopup, InputBox},
     },
 };
 
@@ -151,5 +151,24 @@ impl IssueTableDraw for &mut App {
             buf,
             self.tuistate.issue_table.filter_input_state_mut(),
         );
+
+        if self.tuistate.issue_table.show_help {
+            let items = vec![
+                ("<shift>h", "Sort column left"),
+                ("<shift>l", "Sort column right"),
+                ("<shift>j", "Sort descending"),
+                ("<shift>k", "Sort ascending"),
+                ("h", "Cursor left"),
+                ("j", "Cursor down"),
+                ("k", "Cursor up"),
+                ("l", "Cursor right"),
+                ("<alt>c", "Change columns"),
+                ("<alt>s", "Toggle issue status"),
+                ("/", "Filter"),
+                ("?", "Show help"),
+            ];
+            let help_widget = HelpPopup::new(items).title("Hotkeys");
+            help_widget.render(*buf.area(), buf);
+        }
     }
 }

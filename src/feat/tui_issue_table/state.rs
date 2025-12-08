@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ratatui::widgets::TableState;
+use strum::IntoEnumIterator;
 
 use crate::feat::{
     issue::IssueId,
@@ -15,6 +16,7 @@ pub struct IssueTableState {
     pub(in crate::feat::tui_issue_table) sort_by: Column,
     pub(in crate::feat::tui_issue_table) sort_direction: SortDirection,
     pub(in crate::feat::tui_issue_table) columns: Vec<Column>,
+    pub(in crate::feat::tui_issue_table) show_help: bool,
 
     pub(in crate::feat::tui_issue_table) display_map: HashMap<usize, IssueId>,
 }
@@ -34,6 +36,7 @@ impl Default for IssueTableState {
                 Column::Priority,
                 Column::CreatedBy,
             ],
+            show_help: false,
             display_map: HashMap::default(),
         }
     }
@@ -127,25 +130,26 @@ impl IssueTableState {
     }
 
     pub fn available_columns_for_editing(columns: &[Column]) -> String {
-        let known_columns = vec![
-            Column::Id,
-            Column::Title,
-            Column::Created,
-            Column::Status,
-            Column::Priority,
-            Column::CreatedBy,
-        ];
-        known_columns
-            .into_iter()
-            .map(|col| {
-                if columns.contains(&col) {
-                    format!("{col}")
-                } else {
-                    format!("# {col}")
-                }
-            })
-            .collect::<Vec<_>>()
-            .join("\n")
+        let mut known_columns: Vec<Column> = Column::iter().collect();
+        known_columns.pop(); // Last entry is always Custom, remove it.
+
+        let present: std::collections::HashSet<Column> = columns.iter().cloned().collect();
+
+        let mut lines = Vec::new();
+
+        // First, include all input columns in their current order as active.
+        for col in columns {
+            lines.push(format!("{col}"));
+        }
+
+        // Then, append any missing known columns with comment prefix, in enum order.
+        for col in &known_columns {
+            if !present.contains(col) {
+                lines.push(format!("# {col}"));
+            }
+        }
+
+        lines.join("\n")
     }
 
     pub fn columns_from_edited(input: &str) -> Vec<Column> {
@@ -172,20 +176,12 @@ mod tests {
     #[rstest]
     #[case(vec![], "# ID\n# Title\n# Created\n# Status\n# Priority\n# Created By")]
     #[case(vec![Column::Id], "ID\n# Title\n# Created\n# Status\n# Priority\n# Created By")]
-    #[case(vec![Column::CreatedBy], "# ID\n# Title\n# Created\n# Status\n# Priority\nCreated By")]
-    #[case(
-        vec![Column::Id, Column::Title, Column::Created, Column::Status, Column::Priority, Column::CreatedBy],
-        "ID\nTitle\nCreated\nStatus\nPriority\nCreated By"
-    )]
-    #[case(
-        vec![Column::Custom("Custom".to_string())],
-        "# ID\n# Title\n# Created\n# Status\n# Priority\n# Created By"
-    )]
-    #[case(
-        vec![Column::Id, Column::Status],
-        "ID\n# Title\n# Created\nStatus\n# Priority\n# Created By"
-    )]
-    fn test_available_columns_for_editing(
+    #[case(vec![Column::CreatedBy], "Created By\n# ID\n# Title\n# Created\n# Status\n# Priority")]
+    #[case(vec![Column::Custom("Custom".to_string())], "Custom\n# ID\n# Title\n# Created\n# Status\n# Priority\n# Created By")]
+    #[case(vec![Column::Id, Column::Status], "ID\nStatus\n# Title\n# Created\n# Priority\n# Created By")]
+    #[case(vec![Column::Priority, Column::Title, Column::Status], "Priority\nTitle\nStatus\n# ID\n# Created\n# Created By")]
+    #[case(vec![Column::Custom("Foo".to_string()), Column::CreatedBy, Column::Id], "Foo\nCreated By\nID\n# Title\n# Created\n# Status\n# Priority")]
+    fn test_available_columns_preserves_order(
         #[case] input_columns: Vec<Column>,
         #[case] expected: &str,
     ) {

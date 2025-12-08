@@ -121,6 +121,12 @@ impl IssueTablePageInput for App {
                             self.tuistate.issue_table.sort_previous_column();
                             return Ok(EventPropagation::Stop);
                         }
+                        // Show help
+                        (KeyCode::Char('?'), _) => {
+                            self.tuistate.issue_table.show_help =
+                                !self.tuistate.issue_table.show_help;
+                            return Ok(EventPropagation::Stop);
+                        }
                         // Toggle status line
                         (KeyCode::Char('s'), Some(mods)) if mods.contains(KeyModifiers::ALT) => {
                             let indices = self.tuistate.issue_table.selected();
