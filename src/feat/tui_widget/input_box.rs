@@ -69,6 +69,18 @@ impl InputBoxState {
         EventPropagation::Continue
     }
 
+    pub fn set_text<S>(&mut self, text: S)
+    where
+        S: AsRef<str>,
+    {
+        self.text.remove(0..);
+        self.cursor = 0;
+        for ch in text.as_ref().chars() {
+            self.text.insert_char(self.cursor, ch);
+            self.cursor += 1;
+        }
+    }
+
     /// Sets the focus state of the input box.
     ///
     /// When focused, the input box will respond to keyboard input and display

@@ -9,7 +9,10 @@ pub use state::IssueTableState;
 use strum::EnumIter;
 use wherror::Error;
 
-use crate::feat::{issue::Issue, issues::Issues};
+use crate::feat::{
+    issue::{Issue, Status},
+    issues::Issues,
+};
 
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SortDirection {
@@ -66,8 +69,14 @@ impl std::str::FromStr for Column {
 
 fn apply_issue_filter<'a>(filter_text: &str, issues: &'a Issues) -> Vec<&'a Issue> {
     let filter_text = filter_text.to_lowercase();
+    let remove_closed = filter_text.contains("!closed");
+    let remove_open = filter_text.contains("!open");
+    let filter_text = filter_text.replace("!closed", "");
+    let filter_text = filter_text.replace("!open", "");
     issues
         .iter_issues()
+        .filter(|issue| !(remove_open && issue.status == Status::Open))
+        .filter(|issue| !(remove_closed && issue.status == Status::Closed))
         .filter(|issue| filter_text.is_empty() || issue.title.to_lowercase().contains(&filter_text))
         .collect()
 }

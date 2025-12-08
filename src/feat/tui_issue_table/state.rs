@@ -25,7 +25,11 @@ impl Default for IssueTableState {
     fn default() -> Self {
         Self {
             table: TableState::default(),
-            filter_input: InputBoxState::default(),
+            filter_input: {
+                let mut input = InputBoxState::default();
+                input.set_text("!closed ");
+                input
+            },
             sort_by: Column::Created,
             sort_direction: SortDirection::Descending,
             columns: vec![
