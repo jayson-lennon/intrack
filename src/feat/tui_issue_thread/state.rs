@@ -11,29 +11,29 @@ pub struct IssueThreadState {
 
 impl IssueThreadState {
     pub fn selected(&self) -> Option<usize> {
-        self.list_state.selected()
+        self.list_state.selected
     }
 
     pub fn cursor_add(&mut self, amount: usize) {
-        let current = self.list_state.selected().unwrap_or(0);
+        let current = self.list_state.selected.unwrap_or(0);
         let next = current.saturating_add(amount);
         self.list_state.select(Some(next));
     }
 
     pub fn cursor_sub(&mut self, amount: usize) {
-        let current = self.list_state.selected().unwrap_or(0);
+        let current = self.list_state.selected.unwrap_or(0);
         let next = current.saturating_sub(amount);
         self.list_state.select(Some(next));
     }
 
     pub fn cursor_next(&mut self) {
-        let current = self.list_state.selected().unwrap_or(0);
+        let current = self.list_state.selected.unwrap_or(0);
         let next = current.saturating_add(1);
         self.list_state.select(Some(next));
     }
 
     pub fn cursor_previous(&mut self) {
-        let current = self.list_state.selected().unwrap_or(0);
+        let current = self.list_state.selected.unwrap_or(0);
         let prev = current.saturating_sub(1);
         self.list_state.select(Some(prev));
     }

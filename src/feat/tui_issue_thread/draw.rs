@@ -27,6 +27,7 @@ pub trait IssueThreadDraw {
 }
 
 impl IssueThreadDraw for &mut App {
+    #[allow(clippy::cast_possible_truncation)]
     fn render(self, area: Rect, buf: &mut Buffer) {
         let issue_id = self.tuistate.issue_thread.issue_id;
         let Some(issue) = self.issues.get_issue(&issue_id) else {
@@ -123,6 +124,8 @@ impl IssueThreadDraw for &mut App {
             let items = vec![
                 ("q, <esc>", "Back to issues"),
                 ("a", "Add comment"),
+                ("<ctrl>d", "Cursor down by 10"),
+                ("<ctrl>u", "CUrsor up by 10"),
                 ("j, <down>", "Cursor down"),
                 ("k, <up>", "Cursor up"),
                 ("?", "Toggle help"),
