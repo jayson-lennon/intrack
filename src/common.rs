@@ -30,7 +30,7 @@ pub struct GitQueryError;
 /// Retrieves git user information from the global git configuration.
 ///
 /// Reads the user.name and user.email values from the global git configuration
-/// and returns them as a GitUserInfo struct.
+/// and returns them as a `GitUserInfo` struct.
 ///
 /// # Errors
 ///

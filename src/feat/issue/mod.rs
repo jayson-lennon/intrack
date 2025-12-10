@@ -49,10 +49,15 @@ pub struct Issue {
 
 impl Issue {
     /// Returns the template that can be used to interactively create an issue.
-    pub fn new_template() -> &'static str {
-        r#"---
+    pub fn new_template<S>(username: S) -> String
+    where
+        S: AsRef<str>,
+    {
+        let username = username.as_ref();
+        format!(
+            r#"---
 title: ENTER ISSUE TITLE HERE
-created_by: YOUR.EMAIL@EXAMPLE.COM
+created_by: {username}
 
 # Trivial | Low | Medium | High | Critical | Blocker
 priority: Low
@@ -63,6 +68,7 @@ custom:
 ---
 <no comment provided>
 "#
+        )
     }
     /// Creates a new issue by opening an editor with a YAML template.
     ///

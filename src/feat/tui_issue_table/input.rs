@@ -3,6 +3,7 @@ use wherror::Error;
 
 use crate::{
     App,
+    common::{GitUserInfo, git_user_info},
     feat::{
         external_editor::ExternalEditorError,
         issue::Issue,
@@ -96,10 +97,17 @@ impl IssueTablePageInput for App {
                         }
                         // Create new issue
                         (KeyCode::Char('n' | 'a'), _) => {
-                            self.external_editor.edit(
-                                Issue::new_template(),
-                                "",
-                                move |app, response| {
+                            let author = {
+                                let GitUserInfo { name, email } = git_user_info()
+                                    .change_context(IssueTablePageInputError)
+                                    .attach(
+                                        "failed to get git info for populating comment metadata",
+                                    )?;
+                                format!("{name} <{email}>")
+                            };
+                            let template = Issue::new_template(author);
+                            self.external_editor
+                                .edit(template, "", move |app, response| {
                                     if let Some(issue) = response {
                                         let next_id = app.issues.next_issue_id();
                                         let issue = Issue::from_str(next_id, issue)
@@ -114,8 +122,7 @@ impl IssueTablePageInput for App {
                                         }
                                     }
                                     Ok(())
-                                },
-                            );
+                                });
                             return Ok(EventPropagation::Stop);
                         }
                         // Sort descending
