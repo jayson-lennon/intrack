@@ -1,7 +1,7 @@
 # Maintainer: Jayson Lennon <jayson@jaysonlennon.dev>
 
 pkgname=intrack
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc='in-repo issue tracker'
 url=''
