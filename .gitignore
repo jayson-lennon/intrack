@@ -1,3 +1,6 @@
 /target
 **/*.jsonl
 **/*.log
+**/*.zst
+pkg/
+src/target/
