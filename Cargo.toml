@@ -29,6 +29,7 @@ dialoguer = "0.12.0"
 dotenvy = { version = "0.15.7", features = ["clap"] }
 error-stack = "0.6.0"
 futures = "0.3.31"
+gix-config = "0.48.0"
 jiff = { version = "0.2.16", features = ["serde"] }
 owo-colors = "4.2.3"
 ratatui = { version = "0.29.0", features = ["all-widgets", "crossterm"] }

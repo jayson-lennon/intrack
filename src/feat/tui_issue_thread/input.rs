@@ -125,12 +125,25 @@ impl IssueThreadPageInput for App {
                                         if content.is_empty() {
                                             return Ok(());
                                         }
+                                        let author = {
+                                            let git = gix_config::File::from_globals()
+                                                .change_context(ExternalEditorError)
+                                                .attach("failed to read git configuration")?;
+                                            let name = git
+                                                .string("user.name")
+                                                .ok_or(ExternalEditorError)
+                                                .attach("'name' key not present in git config")?;
+                                            let email = git
+                                                .string("user.email")
+                                                .ok_or(ExternalEditorError)
+                                                .attach("'email' key not present in git config")?;
+                                            format!("{name} <{email}>")
+                                        };
                                         let comment = Comment {
                                             parent_issue: issue_id,
                                             content,
-                                            created: Timestamp::now(),
-                                            created_by: "TODO: current user email or from config"
-                                                .to_string(),
+                                            created_at: Timestamp::now(),
+                                            author,
                                         };
                                         app.issues
                                             .append_to_log(&app.args.event_log, comment)

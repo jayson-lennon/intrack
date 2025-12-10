@@ -108,11 +108,11 @@ impl IssueTableDraw for &mut App {
                                 Column::Id => issue.id.to_string().into(),
                                 Column::Title => issue.title.as_str().into(),
                                 Column::Created => {
-                                    issue.created.strftime("%FT%TZ").to_string().into()
+                                    issue.created_at.strftime("%FT%TZ").to_string().into()
                                 }
                                 Column::Status => format!("{:?}", issue.status).into(),
                                 Column::Priority => format!("{:?}", issue.priority).into(),
-                                Column::CreatedBy => issue.created_by.as_str().into(),
+                                Column::CreatedBy => issue.author.as_str().into(),
                                 Column::Custom(key) => issue
                                     .custom
                                     .get(key.as_str())

@@ -86,10 +86,10 @@ fn apply_issue_sort(filtered_issues: &mut Vec<&Issue>, sort_col: &Column, sort_d
         let ord = match sort_col {
             Column::Id => issue1.id.cmp(&issue2.id),
             Column::Title => issue1.title.cmp(&issue2.title),
-            Column::Created => issue1.created.cmp(&issue2.created),
+            Column::Created => issue1.created_at.cmp(&issue2.created_at),
             Column::Status => issue1.status.cmp(&issue2.status),
             Column::Priority => issue1.priority.cmp(&issue2.priority),
-            Column::CreatedBy => issue1.created_by.cmp(&issue2.created_by),
+            Column::CreatedBy => issue1.author.cmp(&issue2.author),
             Column::Custom(_) => todo!(),
         };
         match sort_dir {

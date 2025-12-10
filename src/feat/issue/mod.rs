@@ -40,10 +40,10 @@ pub struct IssueParseError;
 pub struct Issue {
     pub id: IssueId,
     pub title: String,
-    pub created: Timestamp,
+    pub created_at: Timestamp,
     pub status: Status,
     pub priority: Priority,
-    pub created_by: String,
+    pub author: String,
     pub custom: HashMap<String, String>,
 }
 
@@ -94,10 +94,10 @@ custom:
             Issue {
                 id: new_id,
                 title: issue.title,
-                created: Timestamp::now(),
+                created_at: Timestamp::now(),
                 status: Status::Open,
                 priority: issue.priority,
-                created_by: issue.created_by,
+                author: issue.created_by,
                 custom: issue.custom,
             }
         };
@@ -105,8 +105,8 @@ custom:
         let comment = Comment {
             parent_issue: new_id,
             content: comment.to_string(),
-            created: issue.created,
-            created_by: issue.created_by.clone(),
+            created_at: issue.created_at,
+            author: issue.author.clone(),
         };
 
         Ok(Some((issue, comment)))

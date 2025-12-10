@@ -58,8 +58,11 @@ impl IssueThreadDraw for &mut App {
             let mut data = vec![
                 format!("Status: {:?}", issue.status),
                 format!("Priority: {}", issue.priority),
-                format!("Created: {}", issue.created.strftime("%Y-%m-%d %H:%M:%S")),
-                format!("Created by: {}", issue.created_by),
+                format!(
+                    "Created: {}",
+                    issue.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                ),
+                format!("Created by: {}", issue.author),
                 String::new(),
             ];
             let indent_width = 3;
@@ -67,8 +70,8 @@ impl IssueThreadDraw for &mut App {
             for comment in &comments {
                 let header = format!(
                     "Comment by {} at {}",
-                    comment.created_by,
-                    comment.created.strftime("%Y-%m-%d %H:%M:%S")
+                    comment.author,
+                    comment.created_at.strftime("%Y-%m-%d %H:%M:%S")
                 );
                 data.push(header);
                 for line in comment.content.lines() {
