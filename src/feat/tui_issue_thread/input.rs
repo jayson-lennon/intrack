@@ -4,6 +4,7 @@ use wherror::Error;
 
 use crate::{
     App,
+    common::{GitUserInfo, git_user_info},
     feat::{
         external_editor::ExternalEditorError,
         issue::Comment,
@@ -126,17 +127,9 @@ impl IssueThreadPageInput for App {
                                             return Ok(());
                                         }
                                         let author = {
-                                            let git = gix_config::File::from_globals()
+                                            let GitUserInfo { name, email } = git_user_info()
                                                 .change_context(ExternalEditorError)
-                                                .attach("failed to read git configuration")?;
-                                            let name = git
-                                                .string("user.name")
-                                                .ok_or(ExternalEditorError)
-                                                .attach("'name' key not present in git config")?;
-                                            let email = git
-                                                .string("user.email")
-                                                .ok_or(ExternalEditorError)
-                                                .attach("'email' key not present in git config")?;
+                                                .attach("failed to get git info for populating comment metadata")?;
                                             format!("{name} <{email}>")
                                         };
                                         let comment = Comment {
