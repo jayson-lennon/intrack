@@ -113,8 +113,12 @@ impl App {
     ///
     /// Events will no longer be sent to the application until a new backend is created. The
     /// parameter is intentionally unused as dropping performs all necessary cleanup.
-    fn kill_backend(_: Tui) {
-        // dropping the backend automatically cleans up.
+    fn kill_backend(tui: Tui) -> Result<(), Report<AppError>> {
+        tui.stop()
+            .change_context(AppError)
+            .attach("failed to terminate TUI backend")?;
+        drop(tui);
+        Ok(())
     }
 
     /// Runs the main application event loop.
@@ -157,7 +161,7 @@ impl App {
             }
         }
 
-        Self::kill_backend(tui);
+        Self::kill_backend(tui)?;
 
         Ok(())
     }
@@ -181,7 +185,7 @@ impl App {
             callback,
         }) = self.external_editor.take()
         {
-            Self::kill_backend(tui);
+            Self::kill_backend(tui)?;
 
             let result = dialoguer::Editor::default()
                 .require_save(true)
