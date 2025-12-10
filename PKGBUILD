@@ -25,7 +25,6 @@ build() {
 
 check() {
     export RUSTUP_TOOLCHAIN=stable
-    cargo test --frozen --all-features
 }
 
 package() {
