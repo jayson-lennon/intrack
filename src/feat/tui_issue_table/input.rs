@@ -95,7 +95,7 @@ impl IssueTablePageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Create new issue
-                        (KeyCode::Char('n'), _) => {
+                        (KeyCode::Char('n' | 'a'), _) => {
                             self.external_editor.edit(
                                 Issue::new_template(),
                                 "",

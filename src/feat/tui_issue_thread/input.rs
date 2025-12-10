@@ -115,7 +115,7 @@ impl IssueThreadPageInput for App {
                             return Ok(EventPropagation::Stop);
                         }
                         // Add new comment
-                        (KeyCode::Char('a'), _) => {
+                        (KeyCode::Char('a' | 'n'), _) => {
                             let issue_id = self.tuistate.issue_thread.issue_id;
                             let template = "Enter comment here.\n\n";
                             self.external_editor

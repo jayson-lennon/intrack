@@ -126,7 +126,7 @@ impl IssueThreadDraw for &mut App {
         if self.tuistate.issue_thread.show_help {
             let items = vec![
                 ("q, <esc>", "Back to issues"),
-                ("a", "Add comment"),
+                ("a, n", "Add comment"),
                 ("j, <down>", "Cursor down"),
                 ("k, <up>", "Cursor up"),
                 ("<ctrl>d", "Cursor down by 10"),

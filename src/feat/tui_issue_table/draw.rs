@@ -163,7 +163,7 @@ impl IssueTableDraw for &mut App {
                 ("c", "Change columns"),
                 ("s", "Toggle issue status"),
                 ("/", "Filter"),
-                ("n", "New issue"),
+                ("n, a", "New issue"),
                 ("?", "Show help"),
             ];
             let help_widget = HelpPopup::new(items).title("Hotkeys");
