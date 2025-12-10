@@ -124,10 +124,10 @@ impl IssueThreadDraw for &mut App {
             let items = vec![
                 ("q, <esc>", "Back to issues"),
                 ("a", "Add comment"),
-                ("<ctrl>d", "Cursor down by 10"),
-                ("<ctrl>u", "CUrsor up by 10"),
                 ("j, <down>", "Cursor down"),
                 ("k, <up>", "Cursor up"),
+                ("<ctrl>d", "Cursor down by 10"),
+                ("<ctrl>u", "Cursor up by 10"),
                 ("?", "Toggle help"),
             ];
             let help_widget = HelpPopup::new(items).title("Hotkeys");

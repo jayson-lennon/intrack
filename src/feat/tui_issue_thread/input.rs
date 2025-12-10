@@ -74,6 +74,9 @@ impl IssueThreadPageInput for App {
         match self.tuistate.focus() {
             Focus::IssueThread => {
                 if let (Some(key), mods) = (event.keypress(), event.modifiers()) {
+                    if key != KeyCode::Char('?') && self.tuistate.issue_thread.show_help {
+                        self.tuistate.issue_thread.show_help = false;
+                    }
                     match (key, mods) {
                         // Back to issue table
                         (KeyCode::Char('q') | KeyCode::Esc, _) => {

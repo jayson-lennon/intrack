@@ -77,6 +77,9 @@ impl IssueTablePageInput for App {
         match self.tuistate.focus() {
             Focus::IssueTable => {
                 if let (Some(key), mods) = (event.keypress(), event.modifiers()) {
+                    if key != KeyCode::Char('?') && self.tuistate.issue_table.show_help {
+                        self.tuistate.issue_table.show_help = false;
+                    }
                     match (key, mods) {
                         // Edit columns
                         (KeyCode::Char('c'), _) => {
