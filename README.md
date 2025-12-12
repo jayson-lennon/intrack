@@ -20,7 +20,7 @@ cd intrack
 cargo install --path .
 ```
 
-### Arch Package
+### Arch Linux Package
 
 ```bash
 git clone https://github.com/jayson-lennon/intrack.git
